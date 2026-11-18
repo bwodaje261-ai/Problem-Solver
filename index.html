@@ -3,33 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Problem Solver</title>
+  <title>Problem Solver - የመፍትሄ ገጽ</title>
   <style>
     body {
       font-family: sans-serif;
-      text-align: center;
-      background-color: #f4f6f9;
-      padding: 50px 20px;
+      background-color: #f0f2f5;
+      margin: 0;
+      padding: 20px;
       color: #333;
+      line-height: 1.6;
     }
     .container {
       max-width: 600px;
       margin: auto;
       background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     h1 {
+      color: #1a73e8;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    p.subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 25px;
+    }
+    .section {
+      margin-bottom: 25px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+    }
+    h2 {
       color: #2c3e50;
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    ul {
+      padding-left: 20px;
+    }
+    li {
+      margin-bottom: 8px;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 15px;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background-color: #1a73e8;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      box-sizing: border-box;
+      margin-bottom: 10px;
+    }
+    .btn-telegram {
+      background-color: #0088cc;
+    }
+    .btn-phone {
+      background-color: #28a745;
     }
   </style>
 </head>
 <body>
+
   <div class="container">
     <h1>እንኳን ወደ Problem Solver በደህና መጡ!</h1>
-    <p>ይህ ድረ-ገጽ ለተለያዩ ችግሮች መፍትሄ ለመስጠት የተዘጋጀ ነው።</p>
+    <p class="subtitle">ለተለያዩ ችግሮች ፈጣን እና አስተማማኝ መፍትሄ የሚያገኙበት ድረ-ገጽ።</p>
+
+    <div class="section">
+      <h2>የምንሰጣቸው አገልግሎቶች</h2>
+      <ul>
+        <li>የቴክኖሎጂ እና የስልክ/ኮምፒውተር ችግሮች መፍትሄ</li>
+        <li>የምክር እና የመረጃ አገልግሎት</li>
+        <li>ፈጣን የመስመር ላይ (Online) ድጋፍ</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <h2>ችግርዎን እዚህ ይጻፉልን</h2>
+      <form onsubmit="alert('ጥያቄዎ በተሳካ ሁኔታ ተልኳል! በቅርቡ ምላሽ እንሰጥዎታለን።'); return false;">
+        <input type="text" placeholder="ስምዎን ያስገቡ" required>
+        <input type="tel" placeholder="ስልክ ቁጥርዎን ያስገቡ" required>
+        <textarea rows="4" placeholder="የገጠመዎትን ችግር እዚህ ጋር በዝርዝር ይጻፉ..." required></textarea>
+        <button type="submit" class="btn">ጥያቄውን ላክ</button>
+      </form>
+    </div>
+
+    <div class="section">
+      <h2>በቀጥታ ያግኙን</h2>
+      <a href="https://t.me" class="btn btn-telegram">በቴሌግራም ያውሩን</a>
+      <a href="tel:+251900000000" class="btn btn-phone">በስልክ ይደውሉልን</a>
+    </div>
   </div>
+
 </body>
 </html>
-
