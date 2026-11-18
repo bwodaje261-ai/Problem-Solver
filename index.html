@@ -1,116 +1,179 @@
-<!DOCTYPE html>
-<html lang="am">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Problem Solver - የመፍትሄ ገጽ</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background-color: #f0f2f5;
-      margin: 0;
-      padding: 20px;
-      color: #333;
-      line-height: 1.6;
+export default {
+  async fetch(request, env) {
+    if (request.method !== "POST") {
+      return new Response("Clinical Pharmacy AI Case Solver + Blueprint is Active!");
     }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      background: white;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    h1 {
-      color: #1a73e8;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    p.subtitle {
-      text-align: center;
-      color: #666;
-      margin-bottom: 25px;
-    }
-    .section {
-      margin-bottom: 25px;
-      padding-top: 15px;
-      border-top: 1px solid #eee;
-    }
-    h2 {
-      color: #2c3e50;
-      font-size: 18px;
-      margin-bottom: 10px;
-    }
-    ul {
-      padding-left: 20px;
-    }
-    li {
-      margin-bottom: 8px;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 12px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      box-sizing: border-box;
-      font-size: 15px;
-    }
-    .btn {
-      display: block;
-      width: 100%;
-      padding: 12px;
-      background-color: #1a73e8;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      text-align: center;
-      text-decoration: none;
-      box-sizing: border-box;
-      margin-bottom: 10px;
-    }
-    .btn-telegram {
-      background-color: #0088cc;
-    }
-    .btn-phone {
-      background-color: #28a745;
-    }
-  </style>
-</head>
-<body>
 
-  <div class="container">
-    <h1>እንኳን ወደ Problem Solver በደህና መጡ!</h1>
-    <p class="subtitle">ለተለያዩ ችግሮች ፈጣን እና አስተማማኝ መፍትሄ የሚያገኙበት ድረ-ገጽ።</p>
+    try {
+      const update = await request.json();
+      if (!update.message) return new Response("OK");
 
-    <div class="section">
-      <h2>የምንሰጣቸው አገልግሎቶች</h2>
-      <ul>
-        <li>የቴክኖሎጂ እና የስልክ/ኮምፒውተር ችግሮች መፍትሄ</li>
-        <li>የምክር እና የመረጃ አገልግሎት</li>
-        <li>ፈጣን የመስመር ላይ (Online) ድጋፍ</li>
-      </ul>
-    </div>
+      const chatId = update.message.chat.id;
+      const userText = update.message.text || update.message.caption || "";
+      const photos = update.message.photo;
 
-    <div class="section">
-      <h2>ችግርዎን እዚህ ይጻፉልን</h2>
-      <form onsubmit="alert('ጥያቄዎ በተሳካ ሁኔታ ተልኳል! በቅርቡ ምላሽ እንሰጥዎታለን።'); return false;">
-        <input type="text" placeholder="ስምዎን ያስገቡ" required>
-        <input type="tel" placeholder="ስልክ ቁጥርዎን ያስገቡ" required>
-        <textarea rows="4" placeholder="የገጠመዎትን ችግር እዚህ ጋር በዝርዝር ይጻፉ..." required></textarea>
-        <button type="submit" class="btn">ጥያቄውን ላክ</button>
-      </form>
-    </div>
+      // 1. /start ሲነካ የሚላክ መልዕክት
+      if (userText === "/start") {
+        await sendTelegramMessage(
+          env.TELEGRAM_BOT_TOKEN,
+          chatId,
+          "👋 እንኳን ወደ Clinical Pharmacy AI Case Solver በደህና መጡ!\n\n" +
+          "📌 የፈተናውን አጠቃላይ Blueprint ለማየት /blueprint ይንኩ።\n" +
+          "📌 ማንኛውንም የExit Exam ወይም COC (EHPLE) ጥያቄ በጽሁፍ ይላኩ ወይም የጥያቄውን ፎቶ ያንሱና ይላኩ።\n\n" +
+          "✅ ትክክለኛውን መልስ ከዝርዝር ክሊኒካዊ ማብራሪያ (Ethiopian STG) እና Blueprint ትንተና ጋር ወዲያውኑ እሰጥዎታለሁ!"
+        );
+        return new Response("OK");
+      }
 
-    <div class="section">
-      <h2>በቀጥታ ያግኙን</h2>
-      <a href="https://t.me" class="btn btn-telegram">በቴሌግራም ያውሩን</a>
-      <a href="tel:+251900000000" class="btn btn-phone">በስልክ ይደውሉልን</a>
-    </div>
-  </div>
+      // 2. /blueprint ሲነካ ሙሉ የፈተና Blueprint በዝርዝር ይልካል
+      if (userText === "/blueprint") {
+        const blueprintGuide =
+          "📊 **የኢትዮጵያ Clinical Pharmacy ፈተናዎች አጠቃላይ Blueprint**\n\n" +
+          "1️⃣ **MoH Licensure Exam (COC / EHPLE) Blueprint (6 ዘርፎች):**\n" +
+          "• **Patient Care (53.0%):** Internal Medicine, Pediatrics, Gyn/Obs, Surgery, Psychiatry, Infectious Diseases (HIV, TB, Malaria), Dose adjustment እና Patient Counseling.\n" +
+          "• **Leadership & Management (14.0%):** Pharmaceutical Supply Chain, ABC/VEN Analysis, Quantification, Procurement እና Inventory Control.\n" +
+          "• **Pharmaceutical Technology (12.0%):** Extemporaneous Compounding, Dosage Form Design, Pharmaceutical Calculations እና Quality Control.\n" +
+          "• **Pharmacy Law & Regulatory (10.0%):** EFDA Regulations, Pharmacovigilance (ADR), Narcotics/Psychotropics እና Good Dispensing Practice (GDP).\n" +
+          "• **Professionalism & Ethics (5.0%):** Pharmacy Ethics, Confidentiality እና Interprofessional Collaboration.\n" +
+          "• **Scholar & Drug Info (3.0%):** Drug Information Services (DIS), Evidence-Based Medicine (EBM) እና Research Methodology.\n\n" +
+          "2️⃣ **MoE National Exit Exam Blueprint (5 ዋና ክፍሎች):**\n" +
+          "• **Pharmaceutical Sciences & Tech (~42.5%):** Pharmacology, Medicinal Chemistry, Pharmaceutics, Analysis, Pharmacognosy.\n" +
+          "• **Pharmaceutical Care (~35.0%):** Integrated Therapeutics, Clinical Clerkships, Toxicology (በኢትዮጵያ STG መሰረት).\n" +
+          "• **Dispensing & Drug Info (~13.75%):** Prescription Interpretation, Medication Errors, Counseling.\n" +
+          "• **Supply Chain Management & Pharmacy Law (~8.75%):** Logistics, Cold Chain, National Medicine Policy.\n\n" +
+          "💡 *ማንኛውንም የፈተና ጥያቄ አሁን ይላኩ፤ የትኛው Blueprint ዘርፍ እንደሆነ ለይቼ ከሙሉ ማብራሪያ ጋር እመልስልዎታለሁ!*";
 
-</body>
-</html>
+        await sendTelegramMessage(env.TELEGRAM_BOT_TOKEN, chatId, blueprintGuide);
+        return new Response("OK");
+      }
+
+      // 3. ቦቱ እየጻፈ መሆኑን ለተማሪው ማሳየት
+      await sendChatAction(env.TELEGRAM_BOT_TOKEN, chatId, "typing");
+
+      // 4. ለAI የሚሰጥ ዝርዝር ትዕዛዝ (ሙሉ Blueprint + STG ማብራሪያ)
+      const systemPrompt = `
+        You are a Senior Clinical Pharmacy Professor in Ethiopia mentoring B.Pharm graduates for the MoE National Exit Exam and MoH EHPLE (COC) Licensure Exam.
+        
+        You MUST strictly apply the official Ethiopian Pharmacy Exam Blueprints:
+        [MoH EHPLE / COC Blueprint]:
+        1. Patient Care (53.0%): Pharmacotherapy (Internal Medicine, Pediatrics, Gyn/Obs, Surgery, Psychiatry, Infectious Diseases), Drug Therapy Problems (DTPs), renal/hepatic dose adjustments, patient counseling.
+        2. Leadership & Management (14.0%): Pharmaceutical supply chain management, ABC/VEN analysis, quantification, procurement, inventory control.
+        3. Pharmaceutical Technology (12.0%): Extemporaneous compounding, dosage form design, pharmaceutical calculations, stability, quality control.
+        4. Pharmacy Law & Regulatory Affairs (10.0%): EFDA regulations, pharmacovigilance (ADR reporting), controlled substances (narcotics/psychotropics), Good Dispensing Practice (GDP).
+        5. Professionalism (5.0%): Pharmacy ethics, patient confidentiality, informed consent.
+        6. Scholar (3.0%): Drug information services (DIS), literature evaluation, EBM, research methodology.
+
+        [MoE National Exit Exam Blueprint]:
+        - Pharmaceutical Sciences & Tech (~42.5%): Pharmacology, MedChem, Pharmaceutics, Pharmaceutical Analysis, Pharmacognosy.
+        - Pharmaceutical Care (~35.0%): Integrated Therapeutics, Clinical Clerkships, Toxicology.
+        - Dispensing & Drug Info (~13.75%): Prescription interpretation, medication error prevention.
+        - Supply Chain & Law (~8.75%): Logistics, cold chain, national medicine policies.
+
+        CRITICAL INSTRUCTIONS FOR RESPONSE:
+        1. Base all clinical decisions, first-line drugs, alternatives, and dosages strictly on the **Ethiopian Standard Treatment Guidelines (STG)** and EFDA regulations.
+        2. If an image is uploaded, carefully read the entire clinical case and all options (A, B, C, D) from the image first.
+        3. Structure your answer clearly using these 5 sections:
+
+           ✅ **ትክክለኛው መልስ (Correct Answer):**
+           [State the exact letter and option clearly first]
+
+           📊 **የፈተናው Blueprint ምድብ (Exam Blueprint Mapping):**
+           [Specify the exact MoH COC Domain & Weight (e.g., Patient Care - 53%) AND MoE Exit Exam Theme (e.g., Pharmaceutical Care - 35%), plus the specific sub-topic.]
+
+           🩺 **ዝርዝር ክሊኒካዊ ማብራሪያ (Ethiopian STG Rationale):**
+           [Analyze the patient's clues/diagnosis and explain step-by-step why this choice is correct according to Ethiopian STG or EFDA rules.]
+
+           💊 **የመድኃኒቱ አሰራር፣ መጠን እና ጥንቃቄ (Pharmacology, Dosing & Monitoring):**
+           [Explain the mechanism of action, standard dosing/calculation if applicable, contraindications, and monitoring parameters.]
+
+           ❌ **ሌሎች አማራጮች ለምን አይሆኑም (Why Other Options Are Wrong):**
+           [Break down each wrong option one by one and explain why it is incorrect or unsafe in this scenario.]
+
+        4. Language Rule: Write explanations in clear, natural **Amharic**, while keeping medical conditions, drug names, lab values, and clinical terms in **English** so students master exam terminology.
+      `;
+
+      let geminiParts = [{ text: systemPrompt + "\n\nStudent Question/Case:\n" + userText }];
+
+      // 5. ተማሪው ፎቶ ከላከ ፎቶውን አውርዶ ለAI መስጠት
+      if (photos && photos.length > 0) {
+        const highestResPhoto = photos[photos.length - 1];
+        const fileId = highestResPhoto.file_id;
+
+        const fileInfoRes = await fetch(`https://telegram.org{env.TELEGRAM_BOT_TOKEN}/getFile?file_id=${fileId}`);
+        const fileInfo = await fileInfoRes.json();
+
+        if (fileInfo.ok) {
+          const filePath = fileInfo.result.file_path;
+          const imageUrl = `https://telegram.org{env.TELEGRAM_BOT_TOKEN}/${filePath}`;
+          
+          const imageRes = await fetch(imageUrl);
+          const arrayBuffer = await imageRes.arrayBuffer();
+          const base64Image = arrayBufferToBase64(arrayBuffer);
+
+          geminiParts.push({
+            inline_data: {
+              mime_type: "image/jpeg",
+              data: base64Image
+            }
+          });
+        }
+      }
+
+      // 6. ወደ Gemini AI መላክ
+      const geminiUrl = `https://googleapis.com{env.GEMINI_API_KEY}`;
+      const aiRes = await fetch(geminiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: geminiParts }]
+        })
+      });
+
+      const aiData = await aiRes.json();
+      const replyText = aiData.candidates?.?.content?.parts?.?.text || "ይቅርታ፣ ጥያቄውን ማንበብ ወይም መመለስ አልተቻለም። እባክዎ ጥራት ያለው ፎቶ ይላኩ ወይም በጽሁፍ ይሞክሩ።";
+
+      // 7. ዝርዝር መልሱን ሳይቆረጥ ወደ ቴሌግራም መላክ
+      await sendLongTelegramMessage(env.TELEGRAM_BOT_TOKEN, chatId, replyText);
+
+      return new Response("OK");
+    } catch (error) {
+      return new Response("Error handled", { status: 200 });
+    }
+  }
+};
+
+function arrayBufferToBase64(buffer) {
+  let binary = "";
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+async function sendChatAction(token, chatId, action) {
+  await fetch(`https://telegram.org{token}/sendChatAction`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ chat_id: chatId, action: action })
+  });
+}
+
+async function sendLongTelegramMessage(token, chatId, text) {
+  const maxLength = 4000;
+  for (let i = 0; i < text.length; i += maxLength) {
+    const chunk = text.substring(i, i + maxLength);
+    await sendTelegramMessage(token, chatId, chunk);
+  }
+}
+
+async function sendTelegramMessage(token, chatId, text) {
+  await fetch(`https://telegram.org{token}/sendMessage`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: text
+    })
+  });
+}
