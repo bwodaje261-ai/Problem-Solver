@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+export default {
+  async fetch(request) {
+    const html = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -17,7 +19,7 @@ button{border:none;color:#fff;font-weight:bold;cursor:pointer}
 .opt{background:#f8fafc;color:#0f172a;border:1px solid #cbd5e1;text-align:left;font-weight:normal}
 .ok{background:#dcfce7;border-color:#16a34a}
 .no{background:#fee2e2;border-color:#dc2626}
-.exp{background:#eff6ff;padding:12px;border-radius:8px;margin-top:10px;display:none}
+.exp{background:#eff6ff;padding:12px;border-radius:8px;margin-top:10px;display:none;line-height:1.5}
 </style>
 </head>
 <body>
@@ -43,7 +45,7 @@ button{border:none;color:#fff;font-weight:bold;cursor:pointer}
 <div id="er" style="color:#dc2626;font-weight:bold;margin-top:8px"></div>
 </div>
 <div class="cd" id="qb" style="display:none">
-<div id="qt" style="font-weight:bold;margin-bottom:12px"></div>
+<div id="qt" style="font-weight:bold;margin-bottom:12px;line-height:1.5"></div>
 <div id="op"></div>
 <div class="exp" id="ex"></div>
 </div>
@@ -59,12 +61,12 @@ if(!v){er.innerText="⚠️ Enter API Key first!";return;}
 mk=v;try{localStorage.setItem("gk",v);}catch(e){}
 er.innerText="";gb.disabled=true;gb.innerText="Generating...";
 document.getElementById("qb").style.display="none";
-var p="Create 1 challenging Ethiopian Pharmacy Exit Exam clinical case MCQ on "+document.getElementById("d").value+". Include standard lab reference ranges. Return ONLY JSON: {\"q\":\"question\",\"o\":[\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"],\"a\":0,\"r\":\"Detailed rationale for all choices\"}";
+var p="Create 1 challenging Ethiopian Pharmacy Exit Exam clinical case MCQ on "+document.getElementById("d").value+". Include standard lab reference ranges. Return ONLY JSON: {\\"q\\":\\"question\\",\\"o\\":[\\"A. ...\\",\\"B. ...\\",\\"C. ...\\",\\"D. ...\\"],\\"a\\":0,\\"r\\":\\"Detailed rationale for all choices\\"}";
 try{
 var res=await fetch("https://googleapis.com"+encodeURIComponent(v),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:p}]}]})});
 var data=await res.json();
 if(data.error)throw new Error(data.error.message);
-var t=data.candidates[0].content.parts[0].text.replace(/```json/gi,"").replace(/```/g,"").trim();
+var t=data.candidates[0].content.parts[0].text.replace(/\`\`\`json/gi,"").replace(/\`\`\`/g,"").trim();
 var j=JSON.parse(t);
 document.getElementById("qt").innerText=j.q;
 var od=document.getElementById("op");od.innerHTML="";
@@ -82,4 +84,10 @@ gb.disabled=false;gb.innerText="Generate New Question";
 }
 </script>
 </body>
-</html>
+</html>`;
+
+    return new Response(html, {
+      headers: { "Content-Type": "text/html;charset=UTF-8" }
+    });
+  }
+};
