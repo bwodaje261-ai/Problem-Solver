@@ -1,191 +1,90 @@
-<!DOCTYPE html>
-<html lang="en">
+export default {
+  async fetch(request) {
+    const html = `<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unlimited AI Pharmacy Exit Exam & COC Prep</title>
-    <script src="https://telegram.org"></script>
-    <style>
-        :root {
-            --primary: #0f766e;
-            --primary-dark: #115e59;
-            --bg: #f0fdfa;
-            --card: #ffffff;
-            --text: #1e293b;
-            --correct-bg: #dcfce7;
-            --correct-border: #16a34a;
-            --wrong-bg: #fee2e2;
-            --wrong-border: #dc2626;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
-        body { background: var(--bg); color: var(--text); padding: 15px; line-height: 1.6; }
-        .container { max-width: 850px; margin: 0 auto; }
-        header { background: var(--primary); color: white; padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; }
-        header h1 { font-size: 1.5rem; margin-bottom: 5px; }
-        header p { font-size: 0.9rem; opacity: 0.9; }
-
-        .card { background: var(--card); padding: 20px; border-radius: 12px; box-shadow: 0 3px 8px rgba(0,0,0,0.06); margin-bottom: 18px; }
-        label { font-weight: bold; display: block; margin-bottom: 6px; color: var(--primary-dark); }
-        select, input { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; margin-bottom: 12px; }
-        
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--primary); color: white; font-size: 1.05rem; font-weight: bold; cursor: pointer; }
-        .btn:disabled { background: #94a3b8; cursor: not-allowed; }
-
-        .api-setup { background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.88rem; }
-        .save-btn { padding: 10px 16px; background: #d97706; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 0.95rem; }
-        .status-msg { margin-top: 8px; font-weight: bold; font-size: 0.9rem; color: #0f766e; }
-        .error-msg { color: #dc2626; margin-top: 10px; font-weight: bold; font-size: 0.92rem; }
-
-        .stats-bar { display: flex; justify-content: space-between; align-items: center; background: #ccfbf1; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; color: #0f766e; }
-
-        .q-box { display: none; }
-        .q-domain-badge { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 6px; font-size: 0.82rem; font-weight: bold; margin-bottom: 10px; }
-        .q-text { font-size: 1.08rem; font-weight: 600; margin-bottom: 18px; color: #0f172a; white-space: pre-line; }
-
-        .options { display: flex; flex-direction: column; gap: 10px; }
-        .option-btn { text-align: left; padding: 14px; border: 2px solid #e2e8f0; border-radius: 8px; background: white; font-size: 0.98rem; cursor: pointer; }
-        .option-btn.correct { background: var(--correct-bg); border-color: var(--correct-border); color: #14532d; font-weight: 600; }
-        .option-btn.wrong { background: var(--wrong-bg); border-color: var(--wrong-border); color: #7f1d1d; }
-
-        .explanation-box { margin-top: 20px; padding: 16px; border-radius: 10px; background: #f8fafc; border-left: 5px solid var(--primary); display: none; }
-        .explanation-box h3 { margin-bottom: 10px; color: var(--primary-dark); font-size: 1.05rem; }
-        .exp-item { margin-bottom: 8px; padding: 10px; border-radius: 6px; font-size: 0.92rem; }
-        .exp-correct { background: #dcfce7; border: 1px solid #86efac; }
-        .exp-wrong { background: #fff1f2; border: 1px solid #fecdd3; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharmacy Exam & COC</title>
+<style>
+body{font-family:sans-serif;background:#f0fdfa;padding:15px;color:#1e293b}
+.hd{background:#0f766e;color:#fff;padding:18px;border-radius:10px;text-align:center;margin-bottom:15px}
+.cd{background:#fff;padding:15px;border-radius:10px;box-shadow:0 2px 5px #0001;margin-bottom:15px}
+.kb{background:#fef3c7;border:1px solid #f59e0b}
+input,select,button{width:100%;padding:12px;margin:8px 0;border-radius:8px;font-size:16px;box-sizing:border-box}
+input,select{border:1px solid #cbd5e1}
+button{border:none;color:#fff;font-weight:bold;cursor:pointer}
+.sb{background:#d97706}
+.gb{background:#0f766e}
+.opt{background:#f8fafc;color:#0f172a;border:1px solid #cbd5e1;text-align:left;font-weight:normal}
+.ok{background:#dcfce7;border-color:#16a34a}
+.no{background:#fee2e2;border-color:#dc2626}
+.exp{background:#eff6ff;padding:12px;border-radius:8px;margin-top:10px;display:none}
+</style>
 </head>
 <body>
-
-<div class="container">
-    <header>
-        <h1>Unlimited AI Pharmacy Exam & COC</h1>
-        <p>Infinite Clinical Case & Blueprint Questions with Full Rationales</p>
-    </header>
-
-    <div class="card">
-        <div class="api-setup">
-            <strong>Gemini API Key:</strong> Paste your free Google Gemini API Key below:
-            <input type="password" id="apiKeyInput" placeholder="Paste API key here..." style="margin-top:8px; margin-bottom:8px;">
-            <button type="button" class="save-btn" id="saveBtn">Save Key</button>
-            <div id="keyStatus" class="status-msg"></div>
-        </div>
-
-        <div class="stats-bar">
-            <span>Questions Attempted: <span id="qCount">0</span></span>
-            <span>Score: <span id="scoreCount">0</span></span>
-        </div>
-
-        <label for="domainSelect">Choose Exam Blueprint Domain:</label>
-        <select id="domainSelect">
-            <option value="Weighted Mix across all Pharmacy Exit Exam domains">All Domains (Weighted National Exam Mix - 100%)</option>
-            <option value="Patient Care - Pharmaceutical Care (25%)">Patient Care: Pharmaceutical Care (25%)</option>
-            <option value="Patient Care - Dispensing (21%)">Patient Care: Dispensing (21%)</option>
-            <option value="Patient Care - Drug Information Service / DIS (7%)">Patient Care: DIS (7%)</option>
-            <option value="Leadership and Management - Health Commodities Supply Chain Management (12%)">Leadership & Supply Chain Management (12%)</option>
-            <option value="Pharmaceutical Technology - Pharmaceutical Development and Manufacturing (11%)">Pharmaceutical Technology & Manufacturing (11%)</option>
-            <option value="Pharmacy Law and Regulatory Affairs (10%)">Pharmacy Law & Regulatory Affairs (10%)</option>
-            <option value="Professionalism (5%)">Professionalism & Ethics (5%)</option>
-            <option value="Scholar (3%)">Scholar (3%)</option>
-            <option value="Health Promotion and Disease Prevention (3%)">Health Promotion & Disease Prevention (3%)</option>
-        </select>
-
-        <button type="button" class="btn" id="generateBtn">Generate New Question</button>
-        <div id="genError" class="error-msg"></div>
-    </div>
-
-    <div class="card q-box" id="questionCard">
-        <div class="q-domain-badge" id="qDomainLabel">Domain</div>
-        <div class="q-text" id="questionText">Loading...</div>
-        <div class="options" id="optionsContainer"></div>
-
-        <div class="explanation-box" id="explanationBox">
-            <h3>Detailed Answer & Choice-by-Choice Rationale:</h3>
-            <div id="explanationsList"></div>
-            <button type="button" class="btn" id="nextBtn" style="margin-top:15px;">Next Unlimited Question =></button>
-        </div>
-    </div>
+<div class="hd"><h2>AI Pharmacy Exam & COC</h2><p>Clinical Cases & Full Rationales</p></div>
+<div class="cd kb">
+<b>Gemini API Key:</b>
+<input type="password" id="k" placeholder="Paste API Key here...">
+<button class="sb" onclick="sk()">Save Key</button>
+<div id="ks" style="font-weight:bold;color:#0f766e"></div>
 </div>
-
+<div class="cd">
+<b>Select Domain:</b>
+<select id="d">
+<option value="All Pharmacy Exit Exam Domains">All Domains (National Exam Mix)</option>
+<option value="Pharmaceutical Care and Clinical Pharmacy">Pharmaceutical Care (25%)</option>
+<option value="Dispensing and Dosage Calculation">Dispensing (21%)</option>
+<option value="Drug Information Service and Toxicology">Drug Information Service (7%)</option>
+<option value="Health Commodities Supply Chain Management">Supply Chain Management (12%)</option>
+<option value="Pharmaceutical Manufacturing and Pharmaceutics">Pharmaceutical Technology (11%)</option>
+<option value="Pharmacy Law and Regulatory Affairs">Pharmacy Law & Regulation (10%)</option>
+</select>
+<button class="gb" id="gb" onclick="gq()">Generate New Question</button>
+<div id="er" style="color:#dc2626;font-weight:bold;margin-top:8px"></div>
+</div>
+<div class="cd" id="qb" style="display:none">
+<div id="qt" style="font-weight:bold;margin-bottom:12px"></div>
+<div id="op"></div>
+<div class="exp" id="ex"></div>
+</div>
 <script>
-    try {
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand();
-        }
-    } catch (e) {}
-
-    var memoryKey = "";
-    var totalQuestions = 0;
-    var totalScore = 0;
-    var previousTopics = [];
-    var answeredCurrent = false;
-
-    function getStoredKey() {
-        try {
-            return localStorage.getItem("gemini_api_key") || memoryKey;
-        } catch (e) {
-            return memoryKey;
-        }
-    }
-
-    function setStoredKey(val) {
-        memoryKey = val;
-        try {
-            localStorage.setItem("gemini_api_key", val);
-        } catch (e) {}
-    }
-
-    function initApp() {
-        var savedKey = getStoredKey();
-        if (savedKey) {
-            document.getElementById("apiKeyInput").value = savedKey;
-            document.getElementById("keyStatus").innerText = "✅ Key loaded and ready!";
-        }
-        document.getElementById("saveBtn").addEventListener("click", saveKey);
-        document.getElementById("generateBtn").addEventListener("click", generateQuestion);
-        document.getElementById("nextBtn").addEventListener("click", generateQuestion);
-    }
-
-    function saveKey() {
-        var key = document.getElementById("apiKeyInput").value.trim();
-        var statusEl = document.getElementById("keyStatus");
-        if (!key) {
-            statusEl.style.color = "#dc2626";
-            statusEl.innerText = "⚠️ Please paste your Gemini API Key first!";
-            return;
-        }
-        setStoredKey(key);
-        statusEl.style.color = "#0f766e";
-        statusEl.innerText = "✅ API Key saved! Click 'Generate New Question' below.";
-    }
-
-    async function generateQuestion() {
-        var inputVal = document.getElementById("apiKeyInput").value.trim();
-        var apiKey = inputVal || getStoredKey();
-        var selectedDomain = document.getElementById("domainSelect").value;
-        var btn = document.getElementById("generateBtn");
-        var qCard = document.getElementById("questionCard");
-        var errBox = document.getElementById("genError");
-
-        errBox.innerText = "";
-
-        if (!apiKey) {
-            errBox.innerText = "⚠️ Please paste and save your Gemini API Key first.";
-            return;
-        }
-
-        setStoredKey(apiKey);
-        btn.disabled = true;
-        btn.innerText = "Generating Unique Exam Question...";
-        qCard.style.display = "block";
-        document.getElementById("qDomainLabel").innerText = "Preparing Question...";
-        document.getElementById("questionText").innerText = "Creating a new clinical/exam scenario...";
-        document.getElementById("optionsContainer").innerHTML = "";
-        document.getElementById("explanationBox").style.display = "none";
-        answeredCurrent = false;
-
-        var avoidList = previousTopics.slice(-10).join("; ");
-        var promptText = "You are an Ethiopian National Pharmacy Exit Exam and COC question writer. " +
-            "Generate ONE unique, high-yield multiple-choice question for this domain: " + selectedDomain + ". " +
-            "Avoid repeating these recent topics: [" + avoidList + "]. " +
-            "Include standard laboratory reference ranges whenever lab values are included in a case. " +
+var mk="";
+window.onload=function(){var s="";try{s=localStorage.getItem("gk")||"";}catch(e){}if(s){document.getElementById("k").value=s;document.getElementById("ks").innerText="✅ Key Ready!";}};
+function sk(){var v=document.getElementById("k").value.trim();var ks=document.getElementById("ks");if(!v){ks.style.color="#dc2626";ks.innerText="⚠️ Paste API Key first!";return;}mk=v;try{localStorage.setItem("gk",v);}catch(e){}ks.style.color="#0f766e";ks.innerText="✅ Key Saved!";}
+async function gq(){
+var s="";try{s=localStorage.getItem("gk")||"";}catch(e){}
+var v=document.getElementById("k").value.trim()||s||mk;
+var er=document.getElementById("er"),gb=document.getElementById("gb");
+if(!v){er.innerText="⚠️ Enter API Key first!";return;}
+mk=v;try{localStorage.setItem("gk",v);}catch(e){}
+er.innerText="";gb.disabled=true;gb.innerText="Generating...";
+document.getElementById("qb").style.display="none";
+var p="Create 1 challenging Ethiopian Pharmacy Exit Exam clinical case MCQ on "+document.getElementById("d").value+". Include standard lab reference ranges. Return ONLY JSON: {\"q\":\"question\",\"o\":[\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"],\"a\":0,\"r\":\"Detailed rationale for all choices\"}";
+try{
+var res=await fetch("https://googleapis.com"+encodeURIComponent(v),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:p}]}]})});
+var data=await res.json();
+if(data.error)throw new Error(data.error.message);
+var t=data.candidates[0].content.parts[0].text.replace(/\`\`\`json/gi,"").replace(/\`\`\`/g,"").trim();
+var j=JSON.parse(t);
+document.getElementById("qt").innerText=j.q;
+var od=document.getElementById("op");od.innerHTML="";
+j.o.forEach(function(x,i){
+var b=document.createElement("button");b.className="opt";b.innerText=x;
+b.onclick=function(){
+document.querySelectorAll(".opt").forEach(function(btn,idx){btn.disabled=true;if(idx===j.a)btn.classList.add("ok");else if(idx===i)btn.classList.add("no");});
+var ex=document.getElementById("ex");ex.innerHTML="<b>Rationale:</b><br>"+j.r;ex.style.display="block";
+};
+od.appendChild(b);
+});
+document.getElementById("qb").style.display="block";
+}catch(e){er.innerText="❌ Error: "+e.message;}
+gb.disabled=false;gb.innerText="Generate New Question";
+}
+</script>
+</body>
+</html>`;
+    return new Response(html, { headers: { "Content-Type": "text/html;charset=UTF-8" } });
+  }
+};
