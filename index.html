@@ -28,8 +28,7 @@
         label { font-weight: bold; display: block; margin-bottom: 6px; color: var(--primary-dark); }
         select, input { width: 100%; padding: 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-size: 0.95rem; margin-bottom: 12px; }
         
-        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--primary); color: white; font-size: 1.05rem; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn:hover { background: var(--primary-dark); }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; background: var(--primary); color: white; font-size: 1.05rem; font-weight: bold; cursor: pointer; }
         .btn:disabled { background: #94a3b8; cursor: not-allowed; }
 
         .api-setup { background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.88rem; }
@@ -44,9 +43,7 @@
         .q-text { font-size: 1.08rem; font-weight: 600; margin-bottom: 18px; color: #0f172a; white-space: pre-line; }
 
         .options { display: flex; flex-direction: column; gap: 10px; }
-        .option-btn { text-align: left; padding: 14px; border: 2px solid #e2e8f0; border-radius: 8px; background: white; font-size: 0.98rem; cursor: pointer; transition: 0.2s; }
-        .option-btn:hover:not(:disabled) { border-color: var(--primary); background: #f0fdfa; }
-        .option-btn:disabled { cursor: default; }
+        .option-btn { text-align: left; padding: 14px; border: 2px solid #e2e8f0; border-radius: 8px; background: white; font-size: 0.98rem; cursor: pointer; }
         .option-btn.correct { background: var(--correct-bg); border-color: var(--correct-border); color: #14532d; font-weight: 600; }
         .option-btn.wrong { background: var(--wrong-bg); border-color: var(--wrong-border); color: #7f1d1d; }
 
@@ -66,10 +63,10 @@
     </header>
 
     <div class="card">
-        <div class="api-setup" id="apiBox">
-            <strong>Gemini API Key:</strong> Paste your free Google Gemini API Key below to unlock unlimited questions:
+        <div class="api-setup">
+            <strong>Gemini API Key:</strong> Paste your free Google Gemini API Key below:
             <input type="password" id="apiKeyInput" placeholder="Paste API key here..." style="margin-top:8px; margin-bottom:8px;">
-            <button type="button" class="save-btn" onclick="saveKey()">Save Key</button>
+            <button type="button" class="save-btn" id="saveBtn">Save Key</button>
             <div id="keyStatus" class="status-msg"></div>
         </div>
 
@@ -80,21 +77,19 @@
 
         <label for="domainSelect">Choose Exam Blueprint Domain:</label>
         <select id="domainSelect">
-            <option value="Weighted Mix across all Pharmacy Exit Exam domains (Patient Care 53%, Leadership & Supply Chain 14%, Pharm Tech 12%, Law 10%, Professionalism 5%, Scholar 3%, Health Promotion 3%)">All Domains (Weighted National Exam Mix - 100%)</option>
-            <option value="Patient Care - Pharmaceutical Care (25%): Pharmacotherapy, clinical cases, lab interpretation, drug interactions">Patient Care: Pharmaceutical Care (25%)</option>
-            <option value="Patient Care - Dispensing (21%): Prescription verification, counseling, compounding, dosage calculation">Patient Care: Dispensing (21%)</option>
-            <option value="Patient Care - Drug Information Service / DIS (7%): Literature evaluation, toxicology, ADR reporting">Patient Care: DIS (7%)</option>
-            <option value="Leadership and Management - Health Commodities Supply Chain Management (12%): ABC/VEN analysis, quantification, cold chain, FEFO, IPLS">Leadership & Supply Chain Management (12%)</option>
-            <option value="Leadership and Management - Management/Leadership (2%)">Leadership & Management (2%)</option>
-            <option value="Pharmaceutical Technology - Pharmaceutical Development and Manufacturing (11%): Tablet defects, sterilization, biopharmaceutics, GMP">Pharmaceutical Technology & Manufacturing (11%)</option>
-            <option value="Pharmaceutical Technology - Drug Discovery (1%)">Drug Discovery (1%)</option>
-            <option value="Pharmacy Law and Regulatory Affairs (10%): Institution regulation (4%), Product regulation (4%), Professional regulation (1%), Pharmacy law (1%)">Pharmacy Law & Regulatory Affairs (10%)</option>
-            <option value="Professionalism (5%): Ethical principles (2%), Communication & Collaboration (2%), Standards of Conduct (1%)">Professionalism & Ethics (5%)</option>
-            <option value="Scholar (3%): Biostatistics, NNT/ARR, study designs, Evidence-Based Medicine">Scholar (3%)</option>
-            <option value="Health Promotion and Disease Prevention (3%): Immunization, screening, public health education">Health Promotion & Disease Prevention (3%)</option>
+            <option value="Weighted Mix across all Pharmacy Exit Exam domains">All Domains (Weighted National Exam Mix - 100%)</option>
+            <option value="Patient Care - Pharmaceutical Care (25%)">Patient Care: Pharmaceutical Care (25%)</option>
+            <option value="Patient Care - Dispensing (21%)">Patient Care: Dispensing (21%)</option>
+            <option value="Patient Care - Drug Information Service / DIS (7%)">Patient Care: DIS (7%)</option>
+            <option value="Leadership and Management - Health Commodities Supply Chain Management (12%)">Leadership & Supply Chain Management (12%)</option>
+            <option value="Pharmaceutical Technology - Pharmaceutical Development and Manufacturing (11%)">Pharmaceutical Technology & Manufacturing (11%)</option>
+            <option value="Pharmacy Law and Regulatory Affairs (10%)">Pharmacy Law & Regulatory Affairs (10%)</option>
+            <option value="Professionalism (5%)">Professionalism & Ethics (5%)</option>
+            <option value="Scholar (3%)">Scholar (3%)</option>
+            <option value="Health Promotion and Disease Prevention (3%)">Health Promotion & Disease Prevention (3%)</option>
         </select>
 
-        <button type="button" class="btn" id="generateBtn" onclick="generateQuestion()">Generate New Question</button>
+        <button type="button" class="btn" id="generateBtn">Generate New Question</button>
         <div id="genError" class="error-msg"></div>
     </div>
 
@@ -106,7 +101,7 @@
         <div class="explanation-box" id="explanationBox">
             <h3>Detailed Answer & Choice-by-Choice Rationale:</h3>
             <div id="explanationsList"></div>
-            <button type="button" class="btn" style="margin-top:15px;" onclick="generateQuestion()">Next Unlimited Question =></button>
+            <button type="button" class="btn" id="nextBtn" style="margin-top:15px;">Next Unlimited Question =></button>
         </div>
     </div>
 </div>
@@ -119,11 +114,11 @@
         }
     } catch (e) {}
 
-    let memoryKey = "";
-    let totalQuestions = 0;
-    let totalScore = 0;
-    let previousTopics = [];
-    let answeredCurrent = false;
+    var memoryKey = "";
+    var totalQuestions = 0;
+    var totalScore = 0;
+    var previousTopics = [];
+    var answeredCurrent = false;
 
     function getStoredKey() {
         try {
@@ -140,17 +135,20 @@
         } catch (e) {}
     }
 
-    window.onload = function() {
-        const savedKey = getStoredKey();
+    function initApp() {
+        var savedKey = getStoredKey();
         if (savedKey) {
             document.getElementById("apiKeyInput").value = savedKey;
             document.getElementById("keyStatus").innerText = "✅ Key loaded and ready!";
         }
-    };
+        document.getElementById("saveBtn").addEventListener("click", saveKey);
+        document.getElementById("generateBtn").addEventListener("click", generateQuestion);
+        document.getElementById("nextBtn").addEventListener("click", generateQuestion);
+    }
 
     function saveKey() {
-        const key = document.getElementById("apiKeyInput").value.trim();
-        const statusEl = document.getElementById("keyStatus");
+        var key = document.getElementById("apiKeyInput").value.trim();
+        var statusEl = document.getElementById("keyStatus");
         if (!key) {
             statusEl.style.color = "#dc2626";
             statusEl.innerText = "⚠️ Please paste your Gemini API Key first!";
@@ -162,14 +160,32 @@
     }
 
     async function generateQuestion() {
-        const inputVal = document.getElementById("apiKeyInput").value.trim();
-        const apiKey = inputVal || getStoredKey();
-        const selectedDomain = document.getElementById("domainSelect").value;
-        const btn = document.getElementById("generateBtn");
-        const qCard = document.getElementById("questionCard");
-        const errBox = document.getElementById("genError");
+        var inputVal = document.getElementById("apiKeyInput").value.trim();
+        var apiKey = inputVal || getStoredKey();
+        var selectedDomain = document.getElementById("domainSelect").value;
+        var btn = document.getElementById("generateBtn");
+        var qCard = document.getElementById("questionCard");
+        var errBox = document.getElementById("genError");
 
         errBox.innerText = "";
 
         if (!apiKey) {
             errBox.innerText = "⚠️ Please paste and save your Gemini API Key first.";
+            return;
+        }
+
+        setStoredKey(apiKey);
+        btn.disabled = true;
+        btn.innerText = "Generating Unique Exam Question...";
+        qCard.style.display = "block";
+        document.getElementById("qDomainLabel").innerText = "Preparing Question...";
+        document.getElementById("questionText").innerText = "Creating a new clinical/exam scenario...";
+        document.getElementById("optionsContainer").innerHTML = "";
+        document.getElementById("explanationBox").style.display = "none";
+        answeredCurrent = false;
+
+        var avoidList = previousTopics.slice(-10).join("; ");
+        var promptText = "You are an Ethiopian National Pharmacy Exit Exam and COC question writer. " +
+            "Generate ONE unique, high-yield multiple-choice question for this domain: " + selectedDomain + ". " +
+            "Avoid repeating these recent topics: [" + avoidList + "]. " +
+            "Include standard laboratory reference ranges whenever lab values are included in a case. " +
