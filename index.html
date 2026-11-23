@@ -33,11 +33,15 @@
         .btn:disabled { background: #94a3b8; cursor: not-allowed; }
 
         .api-setup { background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 0.88rem; }
+        .save-btn { padding: 10px 16px; background: #d97706; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; font-size: 0.95rem; }
+        .status-msg { margin-top: 8px; font-weight: bold; font-size: 0.9rem; color: #0f766e; }
+        .error-msg { color: #dc2626; margin-top: 10px; font-weight: bold; font-size: 0.92rem; }
+
         .stats-bar { display: flex; justify-content: space-between; align-items: center; background: #ccfbf1; padding: 10px 15px; border-radius: 8px; margin-bottom: 15px; font-weight: bold; color: #0f766e; }
 
         .q-box { display: none; }
         .q-domain-badge { display: inline-block; background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 6px; font-size: 0.82rem; font-weight: bold; margin-bottom: 10px; }
-        .q-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 18px; color: #0f172a; }
+        .q-text { font-size: 1.08rem; font-weight: 600; margin-bottom: 18px; color: #0f172a; white-space: pre-line; }
 
         .options { display: flex; flex-direction: column; gap: 10px; }
         .option-btn { text-align: left; padding: 14px; border: 2px solid #e2e8f0; border-radius: 8px; background: white; font-size: 0.98rem; cursor: pointer; transition: 0.2s; }
@@ -64,8 +68,9 @@
     <div class="card">
         <div class="api-setup" id="apiBox">
             <strong>Gemini API Key:</strong> Paste your free Google Gemini API Key below to unlock unlimited questions:
-            <input type="password" id="apiKeyInput" placeholder="Paste AIzaSy... key here" style="margin-top:8px; margin-bottom:5px;">
-            <button onclick="saveKey()" style="padding:6px 14px; background:#d97706; color:white; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">Save Key</button>
+            <input type="password" id="apiKeyInput" placeholder="Paste API key here..." style="margin-top:8px; margin-bottom:8px;">
+            <button type="button" class="save-btn" onclick="saveKey()">Save Key</button>
+            <div id="keyStatus" class="status-msg"></div>
         </div>
 
         <div class="stats-bar">
@@ -89,10 +94,10 @@
             <option value="Health Promotion and Disease Prevention (3%): Immunization, screening, public health education">Health Promotion & Disease Prevention (3%)</option>
         </select>
 
-        <button class="btn" id="generateBtn" onclick="generateQuestion()">Generate New Question</button>
+        <button type="button" class="btn" id="generateBtn" onclick="generateQuestion()">Generate New Question</button>
+        <div id="genError" class="error-msg"></div>
     </div>
 
-    <!-- Question & Options Card -->
     <div class="card q-box" id="questionCard">
         <div class="q-domain-badge" id="qDomainLabel">Domain</div>
         <div class="q-text" id="questionText">Loading...</div>
@@ -101,65 +106,70 @@
         <div class="explanation-box" id="explanationBox">
             <h3>Detailed Answer & Choice-by-Choice Rationale:</h3>
             <div id="explanationsList"></div>
-            <button class="btn" style="margin-top:15px;" onclick="generateQuestion()">Next Unlimited Question =></button>
+            <button type="button" class="btn" style="margin-top:15px;" onclick="generateQuestion()">Next Unlimited Question =></button>
         </div>
     </div>
 </div>
 
 <script>
-    if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand();
-    }
+    try {
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        }
+    } catch (e) {}
 
+    let memoryKey = "";
     let totalQuestions = 0;
     let totalScore = 0;
     let previousTopics = [];
+    let answeredCurrent = false;
 
-    window.onload = () => {
-        const savedKey = localStorage.getItem("gemini_api_key");
+    function getStoredKey() {
+        try {
+            return localStorage.getItem("gemini_api_key") || memoryKey;
+        } catch (e) {
+            return memoryKey;
+        }
+    }
+
+    function setStoredKey(val) {
+        memoryKey = val;
+        try {
+            localStorage.setItem("gemini_api_key", val);
+        } catch (e) {}
+    }
+
+    window.onload = function() {
+        const savedKey = getStoredKey();
         if (savedKey) {
             document.getElementById("apiKeyInput").value = savedKey;
+            document.getElementById("keyStatus").innerText = "✅ Key loaded and ready!";
         }
     };
 
     function saveKey() {
         const key = document.getElementById("apiKeyInput").value.trim();
-        if (key) {
-            localStorage.setItem("gemini_api_key", key);
-            alert("API Key saved! Click 'Generate New Question' to start.");
+        const statusEl = document.getElementById("keyStatus");
+        if (!key) {
+            statusEl.style.color = "#dc2626";
+            statusEl.innerText = "⚠️ Please paste your Gemini API Key first!";
+            return;
         }
+        setStoredKey(key);
+        statusEl.style.color = "#0f766e";
+        statusEl.innerText = "✅ API Key saved! Click 'Generate New Question' below.";
     }
 
     async function generateQuestion() {
-        const apiKey = document.getElementById("apiKeyInput").value.trim() || localStorage.getItem("gemini_api_key");
+        const inputVal = document.getElementById("apiKeyInput").value.trim();
+        const apiKey = inputVal || getStoredKey();
         const selectedDomain = document.getElementById("domainSelect").value;
         const btn = document.getElementById("generateBtn");
         const qCard = document.getElementById("questionCard");
+        const errBox = document.getElementById("genError");
+
+        errBox.innerText = "";
 
         if (!apiKey) {
-            alert("Please enter your free Gemini API Key first.");
-            return;
-        }
-
-        btn.disabled = true;
-        btn.innerText = "Generating Unique Exam Question...";
-        qCard.style.display = "block";
-        document.getElementById("questionText").innerText = "Creating a new clinical/exam scenario...";
-        document.getElementById("optionsContainer").innerHTML = "";
-        document.getElementById("explanationBox").style.display = "none";
-
-        const avoidList = previousTopics.slice(-10).join("; ");
-
-        const prompt = `You are an Ethiopian National Pharmacy Exit Exam and COC question writer.
-Generate ONE unique, high-yield multiple-choice question for this domain: ${selectedDomain}.
-Avoid repeating these recent topics: [${avoidList}].
-Include standard laboratory reference ranges whenever lab values are included in a case.
-
-Return ONLY a valid JSON object (no markdown formatting, no backticks) with this exact structure:
-{
-  "domain": "Exact Domain & Sub-domain Name",
-  "topic": "Short 3-word topic summary",
-  "question": "Full clinical case or exam question text",
-  "options": [
-    { "text": "A. Option text", "isCorrect": false, "reason": "Why A is incorrect" },
+            errBox.innerText = "⚠️ Please paste and save your Gemini API Key first.";
