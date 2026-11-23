@@ -1,6 +1,4 @@
-export default {
-  async fetch(request) {
-    const html = `<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
@@ -66,7 +64,7 @@ try{
 var res=await fetch("https://googleapis.com"+encodeURIComponent(v),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({contents:[{parts:[{text:p}]}]})});
 var data=await res.json();
 if(data.error)throw new Error(data.error.message);
-var t=data.candidates[0].content.parts[0].text.replace(/\`\`\`json/gi,"").replace(/\`\`\`/g,"").trim();
+var t=data.candidates.content.parts.text.replace(/```json/gi,"").replace(/```/g,"").trim();
 var j=JSON.parse(t);
 document.getElementById("qt").innerText=j.q;
 var od=document.getElementById("op");od.innerHTML="";
@@ -84,7 +82,4 @@ gb.disabled=false;gb.innerText="Generate New Question";
 }
 </script>
 </body>
-</html>`;
-    return new Response(html, { headers: { "Content-Type": "text/html;charset=UTF-8" } });
-  }
-};
+</html>
