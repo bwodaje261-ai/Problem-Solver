@@ -6,17 +6,36 @@ export default {
         const apiKey = body.key;
         const domain = body.domain;
 
-        const prompt = "Create 1 challenging Ethiopian Pharmacy Exit Exam clinical case MCQ on " + domain + ". Include standard lab reference ranges. Return ONLY valid JSON with no extra text: {\"q\":\"question\",\"o\":[\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"],\"a\":0,\"r\":\"Detailed rationale for all choices\"}";
-
-        const apiRes = await fetch("https://googleapis.com" + encodeURIComponent(apiKey), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }]
-          })
+        const prompt = "Create 1 challenging Ethiopian Pharmacy Exit Exam clinical case MCQ on " + domain + ". Include standard lab reference ranges. Return ONLY valid JSON with no markdown: {\"q\":\"question\",\"o\":[\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"],\"a\":0,\"r\":\"Detailed rationale for all choices\"}";
+        const url = "https://googleapis.com" + encodeURIComponent(apiKey);
+        const payload = JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }]
         });
 
-        const data = await apiRes.json();
+        let raw = "";
+        let status = 200;
+        for (let attempt = 0; attempt < 3; attempt++) {
+          const apiRes = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: payload
+          });
+          status = apiRes.status;
+          raw = await apiRes.text();
+          if (status !== 530 && !raw.includes("1016")) break;
+          await new Promise(r => setTimeout(r, 800));
+        }
+
+        let data;
+        try {
+          data = JSON.parse(raw);
+        } catch (e) {
+          return new Response(JSON.stringify({ error: { message: "Server status " + status + ": " + raw.slice(0, 120) } }), {
+            status: 502,
+            headers: { "Content-Type": "application/json" }
+          });
+        }
+
         return new Response(JSON.stringify(data), {
           headers: { "Content-Type": "application/json" }
         });
@@ -97,8 +116,8 @@ var res=await fetch(window.location.href,{
 });
 var data=await res.json();
 if(data.error)throw new Error(data.error.message);
-var cand=data.candidates.at(0);
-var part=cand.content.parts.at(0);
+var cand=data.candidates.shift();
+var part=cand.content.parts.shift();
 var t=part.text.replace(/[\x60]{3}json/gi,"").replace(/[\x60]{3}/g,"").trim();
 var j=JSON.parse(t);
 document.getElementById("qt").innerText=j.q;
