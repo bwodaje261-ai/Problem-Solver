@@ -1,5 +1,33 @@
 export default {
   async fetch(request) {
+    if (request.method === "POST") {
+      try {
+        const body = await request.json();
+        const apiKey = body.key;
+        const domain = body.domain;
+
+        const prompt = "Create 1 challenging Ethiopian Pharmacy Exit Exam clinical case MCQ on " + domain + ". Include standard lab reference ranges. Return ONLY valid JSON with no extra text: {\"q\":\"question\",\"o\":[\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"],\"a\":0,\"r\":\"Detailed rationale for all choices\"}";
+
+        const apiRes = await fetch("https://googleapis.com" + encodeURIComponent(apiKey), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          })
+        });
+
+        const data = await apiRes.json();
+        return new Response(JSON.stringify(data), {
+          headers: { "Content-Type": "application/json" }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: { message: err.message } }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+    }
+
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -62,18 +90,16 @@ mk=v;try{localStorage.setItem("gk",v);}catch(e){}
 er.innerText="";gb.disabled=true;gb.innerText="Generating...";
 document.getElementById("qb").style.display="none";
 try{
-var domain=document.getElementById("d").value;
-var prompt="Create 1 challenging Ethiopian Pharmacy Exit Exam clinical case MCQ on "+domain+". Include standard lab reference ranges. Return ONLY valid JSON with no extra text: {\\"q\\":\\"question\\",\\"o\\":[\\"A. ...\\",\\"B. ...\\",\\"C. ...\\",\\"D. ...\\"],\\"a\\":0,\\"r\\":\\"Detailed rationale for all choices\\"}";
-var res=await fetch("https://googleapis.com"+encodeURIComponent(v),{
+var res=await fetch(window.location.href,{
   method:"POST",
   headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+  body:JSON.stringify({key:v,domain:document.getElementById("d").value})
 });
-var raw=await res.text();
-var data;
-try{data=JSON.parse(raw);}catch(pe){throw new Error(raw);}
+var data=await res.json();
 if(data.error)throw new Error(data.error.message);
-var t=data.candidates[0].content.parts[0].text.replace(/[\x60]{3}json/gi,"").replace(/[\x60]{3}/g,"").trim();
+var cand=data.candidates.at(0);
+var part=cand.content.parts.at(0);
+var t=part.text.replace(/[\x60]{3}json/gi,"").replace(/[\x60]{3}/g,"").trim();
 var j=JSON.parse(t);
 document.getElementById("qt").innerText=j.q;
 var od=document.getElementById("op");od.innerHTML="";
@@ -94,7 +120,10 @@ gb.disabled=false;gb.innerText="Generate New Question";
 </html>`;
 
     return new Response(html, {
-      headers: { "Content-Type": "text/html;charset=UTF-8" }
+      headers: {
+        "Content-Type": "text/html;charset=UTF-8",
+        "Cache-Control": "no-store"
+      }
     });
   }
 };
