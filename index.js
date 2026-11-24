@@ -1,52 +1,5 @@
 export default {
   async fetch(request) {
-    if (request.method === "POST") {
-      try {
-        const body = await request.json();
-        const apiKey = body.key;
-        const domain = body.domain;
-
-        const prompt = "Create 1 challenging Ethiopian Pharmacy Exit Exam clinical case MCQ on " + domain + ". Include standard lab reference ranges. Return ONLY valid JSON with no markdown: {\"q\":\"question\",\"o\":[\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"],\"a\":0,\"r\":\"Detailed rationale for all choices\"}";
-        const url = "https://googleapis.com" + encodeURIComponent(apiKey);
-        const payload = JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }]
-        });
-
-        let raw = "";
-        let status = 200;
-        for (let attempt = 0; attempt < 3; attempt++) {
-          const apiRes = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: payload
-          });
-          status = apiRes.status;
-          raw = await apiRes.text();
-          if (status !== 530 && !raw.includes("1016")) break;
-          await new Promise(r => setTimeout(r, 800));
-        }
-
-        let data;
-        try {
-          data = JSON.parse(raw);
-        } catch (e) {
-          return new Response(JSON.stringify({ error: { message: "Server status " + status + ": " + raw.slice(0, 120) } }), {
-            status: 502,
-            headers: { "Content-Type": "application/json" }
-          });
-        }
-
-        return new Response(JSON.stringify(data), {
-          headers: { "Content-Type": "application/json" }
-        });
-      } catch (err) {
-        return new Response(JSON.stringify({ error: { message: err.message } }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" }
-        });
-      }
-    }
-
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -70,7 +23,7 @@ button{border:none;color:#fff;font-weight:bold;cursor:pointer}
 </style>
 </head>
 <body>
-<div class="hd"><h2>AI Pharmacy Exam & COC</h2><p>Clinical Cases & Full Rationales</p></div>
+<div class="hd"><h2>AI Pharmacy Exam & COC</h2><p>Direct Mode (v3)</p></div>
 <div class="cd kb">
 <b>Gemini API Key:</b>
 <input type="password" id="k" placeholder="Paste API Key here...">
@@ -109,10 +62,11 @@ mk=v;try{localStorage.setItem("gk",v);}catch(e){}
 er.innerText="";gb.disabled=true;gb.innerText="Generating...";
 document.getElementById("qb").style.display="none";
 try{
-var res=await fetch(window.location.href,{
+var prompt="Create 1 challenging Ethiopian Pharmacy Exit Exam clinical case MCQ on "+document.getElementById("d").value+". Include standard lab reference ranges. Return ONLY valid JSON with no markdown: {\\"q\\":\\"question\\",\\"o\\":[\\"A. ...\\",\\"B. ...\\",\\"C. ...\\",\\"D. ...\\"],\\"a\\":0,\\"r\\":\\"Detailed rationale for all choices\\"}";
+var res=await fetch("https://googleapis.com"+encodeURIComponent(v),{
   method:"POST",
   headers:{"Content-Type":"application/json"},
-  body:JSON.stringify({key:v,domain:document.getElementById("d").value})
+  body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
 });
 var data=await res.json();
 if(data.error)throw new Error(data.error.message);
@@ -138,11 +92,6 @@ gb.disabled=false;gb.innerText="Generate New Question";
 </body>
 </html>`;
 
-    return new Response(html, {
-      headers: {
-        "Content-Type": "text/html;charset=UTF-8",
-        "Cache-Control": "no-store"
-      }
-    });
+    return new Response(html, { headers: { "Content-Type": "text/html;charset=UTF-8", "Cache-Control": "no-store" } });
   }
 };
