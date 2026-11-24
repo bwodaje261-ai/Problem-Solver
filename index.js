@@ -2,30 +2,28 @@ export default {
   async fetch(request, env) {
     if (request.method === "POST") {
       try {
+        if (!env.AI) {
+          throw new Error("Workers AI binding (AI) አልተገናኘም። እባክዎ Cloudflare Settings -> Bindings ላይ 'AI' ይጨምሩ።");
+        }
+
         const body = await request.json();
         const prompt = "Create 1 challenging Ethiopian Pharmacy Exit Exam clinical case MCQ on " + body.domain + ". Include standard lab reference ranges. Return ONLY valid JSON with no extra text: {\"q\":\"question\",\"o\":[\"A. ...\",\"B. ...\",\"C. ...\",\"D. ...\"],\"a\":0,\"r\":\"Detailed rationale for all choices\"}";
 
-        if (env.AI) {
-          const aiRes = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
-            messages: [
-              { role: "system", content: "You are a clinical pharmacy professor. Output ONLY raw valid JSON." },
-              { role: "user", content: prompt }
-            ]
-          });
-          return new Response(JSON.stringify({ text: aiRes.response }), {
-            headers: { "Content-Type": "application/json" }
-          });
-        }
-
-        const apiRes = await fetch("https://googleapis.com" + encodeURIComponent(body.key), {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+        const aiRes = await env.AI.run("@cf/meta/llama-3.1-8b-instruct", {
+          messages: [
+            { role: "system", content: "You are a clinical pharmacy professor. Output ONLY raw valid JSON." },
+            { role: "user", content: prompt }
+          ]
         });
-        const data = await apiRes.json();
-        return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
+
+        return new Response(JSON.stringify({ text: aiRes.response }), {
+          headers: { "Content-Type": "application/json" }
+        });
       } catch (err) {
-        return new Response(JSON.stringify({ error: { message: err.message } }), { status: 500 });
+        return new Response(JSON.stringify({ error: { message: err.message } }), {
+          status: 500,
+          headers: { "Content-Type": "application/json" }
+        });
       }
     }
 
@@ -83,7 +81,7 @@ var res=await fetch(window.location.href,{
 });
 var data=await res.json();
 if(data.error)throw new Error(data.error.message);
-var rawText=data.text||data.candidates.shift().content.parts.shift().text;
+var rawText=data.text;
 var clean=rawText.substring(rawText.indexOf("{"),rawText.lastIndexOf("}")+1);
 var j=JSON.parse(clean);
 document.getElementById("qt").innerText=j.q;
