@@ -97,8 +97,8 @@ var res=await fetch(window.location.href,{
 });
 var data=await res.json();
 if(data.error)throw new Error(data.error.message);
-var cand=data.candidates[0];
-var part=cand.content.parts[0];
+var cand=data["candidates"][0];
+var part=cand["content"]["parts"][0];
 var t=part.text.replace(/[\x60]{3}json/gi,"").replace(/[\x60]{3}/g,"").trim();
 var j=JSON.parse(t);
 document.getElementById("qt").innerText=j.q;
