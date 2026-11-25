@@ -1,1 +1,9 @@
+{
+  "name": "problem-solver",
+  "main": "index.js",
+  "compatibility_date": "2026-11-25",
+  "ai": {
+    "binding": "AI"
+  }
+}
 
