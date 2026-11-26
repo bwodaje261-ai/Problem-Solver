@@ -1,204 +1,113 @@
 export default {
   async fetch(request, env) {
     if (request.method === "POST") {
-      let selectedDomain = "All Domains (Random based on Blueprint)";
+      let domain = "All Domains";
       try {
         const body = await request.json();
-        if (body && body.domain) {
-          selectedDomain = body.domain;
-        }
+        if (body.domain) domain = body.domain;
       } catch (e) {}
 
-      const systemPrompt = `You are an expert Ethiopian Pharmacy Exit Exam and COC question generator.
-Generate ONE realistic multiple-choice question (MCQ) based on the official Ethiopian Pharmacy Exit Exam Blueprint.
-Target Domain requested by user: ${selectedDomain}
-
-Official Ethiopian Pharmacy Exit Exam Blueprint (100%):
-1. Patient Care (53%) - Pharmaceutical care (25%), Dispensing (21%), Drug Information Service / DIS (7%)
-2. Leadership and Management (14%) - Health commodities supply chain management (12%), Management / Leadership (2%)
-3. Pharmaceutical Technology (12%) - Drug discovery (1%), Pharmaceutical development and manufacturing (11%)
-4. Pharmacy Law and Regulatory Affairs (10%) - Institution regulation (4%), Product regulation (4%), Professional regulation (1%), Pharmacy law (1%)
-5. Professionalism (5%) - Ethical principles (2%), Communication and collaboration (2%), Standards of professional conduct and practice (1%)
-6. Scholar (3%) - Research methodology, Biostatistics, Evidence-Based Medicine
-7. Health Promotion and Disease Prevention (3%) - Public health, Epidemiology, Immunization
-
-CRITICAL: You MUST return ONLY a valid JSON object with NO extra text, markdown, or code blocks before or after it. Use this exact JSON structure:
-{
-  "domain": "Selected Domain & Percentage",
-  "question": "The clinical scenario or question text",
-  "options": {
-    "A": "Option A text",
-    "B": "Option B text",
-    "C": "Option C text",
-    "D": "Option D text"
-  },
-  "correctAnswer": "A",
-  "explanation": "Detailed explanation of why the correct option is right, and briefly why the other options are incorrect."
-}`;
+      const randomSeed = Math.floor(Math.random() * 1000000);
+      const prompt = `Generate ONE brand-new, unique Ethiopian Pharmacy Exit Exam MCQ (Seed: ${randomSeed}) focusing on: ${domain}.
+Blueprint: Patient Care(53%), Leadership & Management(14%), Pharm Tech(12%), Pharmacy Law(10%), Professionalism(5%), Scholar(3%), Health Promotion(3%).
+Ensure this question is completely different from common textbook examples, using varied clinical cases, drugs, or scenarios.
+Return ONLY raw JSON (no markdown):
+{"domain":"${domain}","question":"Question text","options":{"A":"...","B":"...","C":"...","D":"..."},"correctAnswer":"A","explanation":"Why it is right and why others are wrong."}`;
 
       try {
-        const aiResponse = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fast", {
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: `Generate one Pharmacy Exit Exam question for domain: ${selectedDomain}. Return ONLY raw JSON.` }
-          ],
-          temperature: 0.6
+        const res = await env.AI.run("@cf/meta/llama-3.1-8b-instruct-fast", {
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.85
         });
-
-        let rawText = aiResponse.response.trim();
-        const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-        if (!jsonMatch) {
-          throw new Error("AI did not return valid JSON format. Please try again.");
-        }
-        const parsedQuestion = JSON.parse(jsonMatch[0]);
-
-        return new Response(JSON.stringify(parsedQuestion), {
-          headers: { "Content-Type": "application/json" }
-        });
+        const match = res.response.match(/\{[\s\S]*\}/);
+        return new Response(match, { headers: { "Content-Type": "application/json" } });
       } catch (err) {
-        return new Response(JSON.stringify({ error: "ጥያቄውን ማመንጨት አልተቻለም፣ እባክዎ እንደገና ይሞክሩ። (" + err.message + ")" }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" }
-        });
+        return new Response(JSON.stringify({ error: "Error: " + err.message }), { status: 500 });
       }
     }
 
-    const pageContent = `<!DOCTYPE html>
-<html lang="en">
+    const html = `<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pharmacy Exit Exam & COC Practice</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pharmacy Exit Exam</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 720px; margin: 20px auto; padding: 15px; background: #f0f4f8; color: #333; }
-    .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
-    .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eef2f5; padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-    .header h2 { margin: 0; font-size: 20px; color: #0056b3; }
-    .score-badge { background: #e6f2ff; color: #0056b3; padding: 8px 14px; border-radius: 20px; font-weight: bold; font-size: 14px; }
-    .controls { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
-    select { flex: 1; min-width: 200px; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; background: #fff; }
-    .gen-btn { background: #007bff; color: white; border: none; padding: 12px 20px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-    .gen-btn:hover { background: #0056b3; }
-    .gen-btn:disabled { background: #a0c4ff; cursor: not-allowed; }
-    .domain-tag { display: inline-block; background: #eef2f5; color: #555; padding: 5px 10px; border-radius: 6px; font-size: 13px; font-weight: bold; margin-bottom: 12px; }
-    .question-text { font-size: 17px; line-height: 1.6; font-weight: 500; margin-bottom: 20px; }
-    .options-list { display: flex; flex-direction: column; gap: 12px; }
-    .option-btn { text-align: left; background: #f8f9fa; border: 2px solid #dee2e6; padding: 14px 16px; border-radius: 8px; font-size: 15px; cursor: pointer; transition: all 0.2s; line-height: 1.4; }
-    .option-btn:hover:not(:disabled) { background: #e9ecef; border-color: #adb5bd; }
-    .option-btn:disabled { cursor: default; }
-    .option-btn.correct { background: #d4edda !important; border-color: #28a745 !important; color: #155724 !important; font-weight: bold; }
-    .option-btn.wrong { background: #f8d7da !important; border-color: #dc3545 !important; color: #721c24 !important; }
-    .explanation-box { margin-top: 20px; padding: 18px; background: #fff8e6; border-left: 5px solid #ffc107; border-radius: 6px; display: none; line-height: 1.6; }
-    .explanation-box h4 { margin: 0 0 8px 0; color: #856404; }
-    .next-btn { margin-top: 15px; width: 100%; background: #28a745; color: white; border: none; padding: 14px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; display: none; }
-    .next-btn:hover { background: #218838; }
-    .status-msg { text-align: center; color: #666; padding: 30px 10px; font-size: 16px; }
+    body{font-family:sans-serif;max-width:650px;margin:20px auto;padding:15px;background:#f0f4f8}
+    .card{background:#fff;padding:20px;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
+    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+    .score{background:#e6f2ff;color:#0056b3;padding:6px 12px;border-radius:15px;font-weight:bold}
+    select,button{width:100%;padding:12px;margin-bottom:10px;border-radius:8px;font-size:15px}
+    .gen{background:#007bff;color:#fff;border:none;font-weight:bold;cursor:pointer}
+    .opt{text-align:left;background:#f8f9fa;border:2px solid #ddd;cursor:pointer}
+    .correct{background:#d4edda!important;border-color:#28a745!important;color:#155724;font-weight:bold}
+    .wrong{background:#f8d7da!important;border-color:#dc3545!important;color:#721c24}
+    .exp{background:#fff8e6;padding:15px;border-left:4px solid #ffc107;margin-top:15px;display:none}
+    .next{background:#28a745;color:#fff;border:none;font-weight:bold;margin-top:10px;display:none;cursor:pointer}
   </style>
 </head>
 <body>
   <div class="card">
-    <div class="header">
-      <h2>Pharmacy Exit Exam Practice</h2>
-      <div class="score-badge">Score: <span id="score">0</span> / <span id="total">0</span></div>
-    </div>
-
-    <div class="controls">
-      <select id="domainSelect">
-        <option value="All Domains (Random based on Blueprint)">All Domains (Blueprint Mix)</option>
-        <option value="Patient Care (53%)">1. Patient Care (53%)</option>
-        <option value="Leadership and Management (14%)">2. Leadership & Management (14%)</option>
-        <option value="Pharmaceutical Technology (12%)">3. Pharmaceutical Technology (12%)</option>
-        <option value="Pharmacy Law and Regulatory Affairs (10%)">4. Pharmacy Law & Regulatory (10%)</option>
-        <option value="Professionalism (5%)">5. Professionalism (5%)</option>
-        <option value="Scholar (3%)">6. Scholar / Research (3%)</option>
-        <option value="Health Promotion and Disease Prevention (3%)">7. Health Promotion & Public Health (3%)</option>
-      </select>
-      <button id="genBtn" class="gen-btn" onclick="generateQuestion()">Generate Question</button>
-    </div>
-
-    <div id="statusMsg" class="status-msg">Select a domain and click "Generate Question" to start practicing!</div>
-
-    <div id="quizArea" style="display: none;">
-      <div id="domainTag" class="domain-tag"></div>
-      <div id="questionText" class="question-text"></div>
-      <div id="optionsContainer" class="options-list"></div>
-      
-      <div id="explanationBox" class="explanation-box">
-        <h4>Explanation:</h4>
-        <div id="explanationText"></div>
-      </div>
-
-      <button id="nextBtn" class="next-btn" onclick="generateQuestion()">Next Question ➔</button>
+    <div class="top"><h3>Pharmacy Exam (Unlimited)</h3><span class="score">Score: <b id="sc">0</b>/<b id="tot">0</b></span></div>
+    <select id="dom">
+      <option value="All Domains">All Domains (Blueprint Mix)</option>
+      <option value="Pharmacology and Therapeutics">Pharmacology & Therapeutics</option>
+      <option value="Clinical Pharmacy and Pharmaceutical Care">Clinical Pharmacy & Patient Care (53%)</option>
+      <option value="Pharmaceutics and Pharmaceutical Technology">Pharmaceutics & Pharm Tech (12%)</option>
+      <option value="Medicinal Chemistry and Pharmacognosy">Medicinal Chemistry & Pharmacognosy</option>
+      <option value="Leadership and Supply Chain Management">Leadership & Supply Chain Mgmt (14%)</option>
+      <option value="Pharmacy Law and Regulatory Affairs">Pharmacy Law & Regulatory (10%)</option>
+      <option value="Professionalism and Ethics">Professionalism & Ethics (5%)</option>
+      <option value="Scholar, Research and Biostatistics">Scholar & Research (3%)</option>
+      <option value="Health Promotion and Public Health">Health Promotion & Public Health (3%)</option>
+    </select>
+    <button class="gen" id="gBtn" onclick="loadQ()">Generate Question</button>
+    <p id="msg">Select a subject and click Generate.</p>
+    <div id="quiz" style="display:none">
+      <small id="dTag" style="color:#666;font-weight:bold"></small>
+      <p id="qTxt" style="font-weight:bold;font-size:16px"></p>
+      <div id="opts"></div>
+      <div id="expBox" class="exp"><b>Explanation:</b> <span id="expTxt"></span></div>
+      <button class="next" id="nBtn" onclick="loadQ()">Next Question ➔</button>
     </div>
   </div>
-
   <script>
-    let currentQuestion = null;
-    let score = 0;
-    let totalAttempted = 0;
-    let isAnswered = false;
-
-    async function generateQuestion() {
-      const btn = document.getElementById('genBtn');
-      const nextBtn = document.getElementById('nextBtn');
-      const statusMsg = document.getElementById('statusMsg');
-      const quizArea = document.getElementById('quizArea');
-      const domain = document.getElementById('domainSelect').value;
-
-      btn.disabled = true;
-      nextBtn.style.display = 'none';
-      quizArea.style.display = 'none';
-      statusMsg.style.display = 'block';
-      statusMsg.innerText = '⏳ AI is preparing a question... Please wait...';
-      isAnswered = false;
-
-      try {
-        const res = await fetch('/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ domain: domain })
+    let cur=null,sc=0,tot=0,done=false;
+    async function loadQ(){
+      const b=document.getElementById('gBtn'),m=document.getElementById('msg'),q=document.getElementById('quiz');
+      b.disabled=true;q.style.display='none';m.style.display='block';m.innerText='Loading new question...';done=false;
+      try{
+        const r=await fetch('/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:document.getElementById('dom').value})});
+        cur=await r.json();
+        if(cur.error){m.innerText=cur.error;return;}
+        m.style.display='none';q.style.display='block';
+        document.getElementById('expBox').style.display='none';
+        document.getElementById('nBtn').style.display='none';
+        document.getElementById('dTag').innerText=cur.domain;
+        document.getElementById('qTxt').innerText=cur.question;
+        const o=document.getElementById('opts');o.innerHTML='';
+        ['A','B','C','D'].forEach(k=>{
+          if(cur.options[k]){
+            const btn=document.createElement('button');
+            btn.className='opt';btn.id='o-'+k;btn.innerText=k+') '+cur.options[k];
+            btn.onclick=()=>ans(k);o.appendChild(btn);
+          }
         });
-        const data = await res.json();
-
-        if (data.error) {
-          statusMsg.innerText = '❌ ' + data.error;
-          return;
-        }
-
-        currentQuestion = data;
-        renderQuestion(data);
-      } catch (e) {
-        statusMsg.innerText = '❌ Network error: ' + e.message;
-      } finally {
-        btn.disabled = false;
-      }
+      }catch(e){m.innerText='Error: '+e.message;}finally{b.disabled=false;}
     }
-
-    function renderQuestion(data) {
-      document.getElementById('statusMsg').style.display = 'none';
-      document.getElementById('quizArea').style.display = 'block';
-      document.getElementById('explanationBox').style.display = 'none';
-
-      document.getElementById('domainTag').innerText = 'Domain: ' + data.domain;
-      document.getElementById('questionText').innerText = data.question;
-
-      const optionsContainer = document.getElementById('optionsContainer');
-      optionsContainer.innerHTML = '';
-
-      ['A', 'B', 'C', 'D'].forEach(letter => {
-        if (data.options[letter]) {
-          const button = document.createElement('button');
-          button.className = 'option-btn';
-          button.id = 'opt-' + letter;
-          button.innerText = letter + ') ' + data.options[letter];
-          button.onclick = () => checkAnswer(letter);
-          optionsContainer.appendChild(button);
-        }
-      });
+    function ans(k){
+      if(done)return;done=true;tot++;
+      const c=cur.correctAnswer.trim().toUpperCase();
+      if(k===c){document.getElementById('o-'+k).classList.add('correct');sc++;}
+      else{document.getElementById('o-'+k).classList.add('wrong');if(document.getElementById('o-'+c))document.getElementById('o-'+c).classList.add('correct');}
+      ['A','B','C','D'].forEach(x=>{const b=document.getElementById('o-'+x);if(b)b.disabled=true;});
+      document.getElementById('sc').innerText=sc;document.getElementById('tot').innerText=tot;
+      document.getElementById('expTxt').innerText=cur.explanation;
+      document.getElementById('expBox').style.display='block';
+      document.getElementById('nBtn').style.display='block';
     }
-
-    function checkAnswer(selectedLetter) {
-      if (isAnswered) return;
-      isAnswered = true;
-      totalAttempted++;
-
+  </script>
+</body>
+</html>`;
+    return new Response(html, { headers: { "Content-Type": "text/html;charset=UTF-8" } });
+  }
+};
