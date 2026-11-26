@@ -104,15 +104,21 @@ export default {
     }
 
     if (request.method === "POST") {
-      const { domain } = await request.json();
-      const prompt = \`Create 1 Ethiopian Pharmacy Exit Exam & COC multiple-choice question strictly under domain: "\${domain}". Reply ONLY in valid JSON format: {"domain":"\${domain}","question":"...","options":["A. ...","B. ...","C. ...","D. ..."],"correctIndex":0,"explanation":"Why correct answer is right AND why each of the other 3 choices is wrong."}\`;
-      
-      const aiRes = await env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
-        messages: [{ role: "user", content: prompt }]
-      });
+      try {
+        const { domain } = await request.json();
+        const prompt = 'Create 1 Ethiopian Pharmacy Exit Exam & COC multiple-choice question strictly under domain: "' + domain + '". Reply ONLY in valid JSON format with no markdown formatting: {"domain":"' + domain + '","question":"...","options":["A. ...","B. ...","C. ...","D. ..."],"correctIndex":0,"explanation":"Why correct answer is right AND why each of the other 3 choices is wrong."}';
+        
+        const aiRes = await env.AI.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast", {
+          messages: [{ role: "user", content: prompt }]
+        });
 
-      let text = aiRes.response.replace(/\`\`\`json/g, "").replace(/\`\`\`/g, "").trim();
-      return new Response(text, { headers: { "Content-Type": "application/json" } });
+        let text = aiRes.response.replace(/```json/g, "").replace(/```/g, "").trim();
+        return new Response(text, { headers: { "Content-Type": "application/json" } });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { "Content-Type": "application/json" } });
+      }
     }
+
+    return new Response("Method not allowed", { status: 405 });
   }
 };
