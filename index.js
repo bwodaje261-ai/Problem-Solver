@@ -36,9 +36,17 @@ Use this exact JSON structure:
   "explanation": "Clear explanation why the answer is correct and others are wrong."
 }`;
 
+  // አንዱ ሞዴል ቢጨናነቅ ወዲያውኑ ወደ ቀጣዩ እንዲቀይር የሚያደርግ ዝርዝር
+  const models = [
+    "gemini-3.8-flash",
+    "gemini-3.8-flash-lite",
+    "gemini-2.5-flash-lite"
+  ];
+
   let lastError = null;
 
-  for (let attempt = 1; attempt <= 3; attempt++) {
+  for (let attempt = 0; attempt < models.length; attempt++) {
+    const currentModel = models[attempt];
     try {
       const apiKey = env.GEMINI_API_KEY || env.GoogleGeminiApiKey || env.API_KEY;
       if (!apiKey) {
@@ -47,8 +55,7 @@ Use this exact JSON structure:
 
       const protocol = "https" + "://";
       const host = ["generativelanguage", "googleapis", "com"].join(".");
-      // የተስተካከለው ሞዴል እዚህ ጋር ነው (gemini-3.8-flash)
-      const path = "/v1beta/models/gemini-3.8-flash:generateContent";
+      const path = `/v1beta/models/${currentModel}:generateContent`;
       const fullUrl = protocol + host + path + "?key=" + apiKey.trim();
 
       const response = await fetch(fullUrl, {
@@ -65,7 +72,7 @@ Use this exact JSON structure:
 
       if (!response.ok) {
         const errText = await response.text();
-        throw new Error(`API Error: ${response.status} - ${errText}`);
+        throw new Error(`API Error (${currentModel}): ${response.status} - ${errText}`);
       }
 
       const data = await response.json();
@@ -86,6 +93,8 @@ Use this exact JSON structure:
       throw new Error("ያልተሟላ የጥያቄ ቅርጸት");
     } catch (error) {
       lastError = error;
+      // ትንሽ ቆይቶ ቀጣዩን ሞዴል ይሞክራል
+      await new Promise((resolve) => setTimeout(resolve, 600));
     }
   }
 
