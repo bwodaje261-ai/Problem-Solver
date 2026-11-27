@@ -25,7 +25,6 @@ export default {
   },
 };
 
-// የJSON ስህተት እንዳይፈጠር እስከ 3 ጊዜ ራሱ ደግሞ የሚሞክር ተግባር
 async function generatePharmacyQuestion(domain, env) {
   const prompt = `Generate 1 challenging multiple-choice Pharmacy licensing exam question for the domain: "${domain}".
 Return ONLY a valid JSON object. Do NOT include markdown formatting like \`\`\`json. Ensure all quotes inside text are properly escaped.
@@ -46,9 +45,12 @@ Use this exact JSON structure:
         throw new Error("API Key በCloudflare Settings ውስጥ አልተጨመረም።");
       }
 
-      // የተስተካከለው የGemini API ጥሪ (አጭር እና ግልጽ አጻጻፍ)
-      const baseUrl = "https://googleapis.com";
-      const response = await fetch(baseUrl + "?key=" + apiKey.trim(), {
+      // ሊንኩ እንዳይቆረጥ ተከፋፍሎ የተገጣጠመ አድራሻ
+      const host = "://googleapis.com";
+      const path = "/v1beta/models/gemini-2.5-flash:generateContent";
+      const fullUrl = "https://" + host + path + "?key=" + apiKey.trim();
+
+      const response = await fetch(fullUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -87,7 +89,6 @@ Use this exact JSON structure:
   throw lastError;
 }
 
-// ከAI የሚመጣውን ጽሑፍ አጽድቶ ንፁህ JSON የሚያወጣ
 function cleanJSON(text) {
   let str = text.replace(/```json/gi, "").replace(/```/g, "").trim();
   const firstBrace = str.indexOf("{");
@@ -98,7 +99,6 @@ function cleanJSON(text) {
   return str;
 }
 
-// የድረ-ገጹ ዲዛይን (Frontend)
 function renderHTML() {
   return `<!DOCTYPE html>
 <html lang="en">
