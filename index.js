@@ -45,7 +45,6 @@ Use this exact JSON structure:
         throw new Error("API Key በCloudflare Settings ውስጥ አልተጨመረም።");
       }
 
-      // ሊንኩ በስልክ ኮፒ ሲደረግ እንዳይበላሽ ተበታትኖ የተገጣጠመ
       const protocol = "https" + "://";
       const host = ["generativelanguage", "googleapis", "com"].join(".");
       const path = "/v1beta/models/gemini-2.5-flash:generateContent";
