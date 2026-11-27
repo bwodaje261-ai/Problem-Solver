@@ -25,7 +25,44 @@ export default {
   },
 };
 
+async function getAvailableModels(apiKey) {
+  // በቅድሚያ የሚሞከሩ ፈጣን እና ንቁ ሞዴሎች
+  const defaultModels = [
+    "gemini-3.5-flash-lite",
+    "gemini-3.8-flash",
+    "gemini-3.5-flash"
+  ];
+
+  try {
+    const res = await fetch(`https://googleapis.com{apiKey}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data.models && Array.isArray(data.models)) {
+        const liveFlashModels = data.models
+          .filter(m => 
+            m.name.includes("flash") && 
+            !m.name.includes("2.5") && 
+            !m.name.includes("2.0") &&
+            m.supportedGenerationMethods?.includes("generateContent")
+          )
+          .map(m => m.name.replace("models/", ""));
+        
+        // አሁን ያሉትን እና ነባሮቹን አጣምሮ ያለድግግሞሽ ይመልሳል
+        return [...new Set([...defaultModels, ...liveFlashModels])];
+      }
+    }
+  } catch (e) {
+    // ዝርዝሩን ማምጣት ካልቻለ ነባሮቹን ይጠቀማል
+  }
+  return defaultModels;
+}
+
 async function generatePharmacyQuestion(domain, env) {
+  const apiKey = (env.GEMINI_API_KEY || env.GoogleGeminiApiKey || env.API_KEY || "").trim();
+  if (!apiKey) {
+    throw new Error("API Key በCloudflare Settings ውስጥ አልተጨመረም።");
+  }
+
   const prompt = `Generate 1 challenging multiple-choice Pharmacy licensing exam question for the domain: "${domain}".
 Return ONLY a valid JSON object. Do NOT include markdown formatting like \`\`\`json. Ensure all quotes inside text are properly escaped.
 Use this exact JSON structure:
@@ -36,27 +73,13 @@ Use this exact JSON structure:
   "explanation": "Clear explanation why the answer is correct and others are wrong."
 }`;
 
-  // አንዱ ሞዴል ቢጨናነቅ ወዲያውኑ ወደ ቀጣዩ እንዲቀይር የሚያደርግ ዝርዝር
-  const models = [
-    "gemini-3.8-flash",
-    "gemini-3.8-flash-lite",
-    "gemini-2.5-flash-lite"
-  ];
-
+  const models = await getAvailableModels(apiKey);
   let lastError = null;
 
-  for (let attempt = 0; attempt < models.length; attempt++) {
-    const currentModel = models[attempt];
+  for (let i = 0; i < models.length; i++) {
+    const currentModel = models[i];
     try {
-      const apiKey = env.GEMINI_API_KEY || env.GoogleGeminiApiKey || env.API_KEY;
-      if (!apiKey) {
-        throw new Error("API Key በCloudflare Settings ውስጥ አልተጨመረም።");
-      }
-
-      const protocol = "https" + "://";
-      const host = ["generativelanguage", "googleapis", "com"].join(".");
-      const path = `/v1beta/models/${currentModel}:generateContent`;
-      const fullUrl = protocol + host + path + "?key=" + apiKey.trim();
+      const fullUrl = `https://googleapis.com{currentModel}:generateContent?key=${apiKey}`;
 
       const response = await fetch(fullUrl, {
         method: "POST",
@@ -93,8 +116,8 @@ Use this exact JSON structure:
       throw new Error("ያልተሟላ የጥያቄ ቅርጸት");
     } catch (error) {
       lastError = error;
-      // ትንሽ ቆይቶ ቀጣዩን ሞዴል ይሞክራል
-      await new Promise((resolve) => setTimeout(resolve, 600));
+      // ሞዴሉ ከተጨናነቀ (503) ወይም ካልተገኘ (404) ወዲያውኑ ወደ ቀጣዩ ይሸጋገራል
+      await new Promise((resolve) => setTimeout(resolve, 400));
     }
   }
 
@@ -308,25 +331,3 @@ function renderHTML() {
       answered = true;
       totalCount++;
 
-      const buttons = document.querySelectorAll(".option-btn");
-      if (selectedIndex === correctIndex) {
-        correctCount++;
-        clickedBtn.classList.add("correct");
-      } else {
-        clickedBtn.classList.add("wrong");
-        if (buttons[correctIndex]) {
-          buttons[correctIndex].classList.add("correct");
-        }
-      }
-
-      document.getElementById("score").textContent = correctCount + "/" + totalCount;
-
-      const expDiv = document.createElement("div");
-      expDiv.className = "explanation";
-      expDiv.innerHTML = "<strong>Explanation:</strong> " + explanation;
-      document.getElementById("contentArea").appendChild(expDiv);
-    }
-  </script>
-</body>
-</html>`;
-}
