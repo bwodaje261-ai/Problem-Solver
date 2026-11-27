@@ -45,10 +45,11 @@ Use this exact JSON structure:
         throw new Error("API Key በCloudflare Settings ውስጥ አልተጨመረም።");
       }
 
-      // ሊንኩ እንዳይቆረጥ ተከፋፍሎ የተገጣጠመ አድራሻ
-      const host = "://googleapis.com";
+      // ሊንኩ በስልክ ኮፒ ሲደረግ እንዳይበላሽ ተበታትኖ የተገጣጠመ
+      const protocol = "https" + "://";
+      const host = ["generativelanguage", "googleapis", "com"].join(".");
       const path = "/v1beta/models/gemini-2.5-flash:generateContent";
-      const fullUrl = "https://" + host + path + "?key=" + apiKey.trim();
+      const fullUrl = protocol + host + path + "?key=" + apiKey.trim();
 
       const response = await fetch(fullUrl, {
         method: "POST",
@@ -68,7 +69,9 @@ Use this exact JSON structure:
       }
 
       const data = await response.json();
-      let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      const candidate = data.candidates && data.candidates.at(0);
+      const part = candidate && candidate.content && candidate.content.parts && candidate.content.parts.at(0);
+      let rawText = part && part.text;
 
       if (!rawText) {
         throw new Error("AI ባዶ መልስ ልኳል።");
