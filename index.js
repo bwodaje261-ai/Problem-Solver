@@ -286,37 +286,46 @@ function renderHTML() {
             </linearGradient>
           </defs>
           <rect x="4" y="4" width="56" height="56" rx="16" fill="url(#pharmGrad)" fill-opacity="0.12"/>
-          <g transform="rotate(-45 32 32)">
-            <rect x="14" y="23" width="36" height="18" rx="9" fill="url(#pharmGrad)"/>
-            <path d="M32 23H41C45.9706 23 50 27.0294 50 32C50 36.9706 45.9706 41 41 41H32V23Z" fill="#ffffff" fill-opacity="0.88"/>
-          </g>
-          <path d="M16 14C16 14 22 14 24 20C18 22 16 16 16 14Z" fill="#0d9488"/>
-          <path d="M40 46H52C52 50.4183 48.4183 54 44 54H48C43.5817 54 40 50.4183 40 46Z" fill="#1d4ed8"/>
+          <path d="M27 16H37V27H48V37H37V48H27V37H16V27H27V16Z" fill="url(#pharmGrad)"/>
         </svg>
-        <h1>PHARMACY<br>EHPLE Exit Exam<br>and COC</h1>
+        <h1>PHARMACY EHPLE Exit Exam and COC</h1>
       </div>
-      <div class="score-box">Score:<br><span id="score">0/0</span></div>
+      <div class="score-box" id="scoreBox">Score<br/>0 / 0</div>
     </div>
 
     <select id="domainSelect">
-      <option value="All Domains (Blueprint Mix)">All Domains (Blueprint Mix)</option>
-      <option value="Drug Dispensing & Counseling">Drug Dispensing & Counseling</option>
-      <option value="Pharmacology & Therapeutics">Pharmacology & Therapeutics</option>
-      <option value="Pharmaceutics & Compounding">Pharmaceutics & Compounding</option>
-      <option value="Clinical Pharmacy & Patient Care">Clinical Pharmacy & Patient Care</option>
-      <option value="Pharmacy Law, Ethics & Management">Pharmacy Law, Ethics & Management</option>
-      <option value="Medicinal Chemistry & Pharmacognosy">Medicinal Chemistry & Pharmacognosy</option>
+      <option value="Pharmacology and Pharmacotherapy">Pharmacology & Pharmacotherapy</option>
+      <option value="Clinical Pharmacy and Patient Care">Clinical Pharmacy & Patient Care</option>
+      <option value="Pharmaceutics and Dispensing">Pharmaceutics & Dispensing</option>
+      <option value="Pharmaceutical Chemistry and Analysis">Pharmaceutical Chemistry & Analysis</option>
+      <option value="Pharmacognosy and Alternative Medicine">Pharmacognosy & Alternative Medicine</option>
+      <option value="Social and Administrative Pharmacy">Social & Administrative Pharmacy</option>
     </select>
 
-    <button id="generateBtn" class="primary" onclick="loadQuestion()">Generate Question ✨</button>
+    <button id="generateBtn" class="primary" onclick="generateQuestion()">Generate Question</button>
 
-    <div id="contentArea"></div>
+    <div id="quizContainer"></div>
   </div>
 
   <script>
-    let correctCount = 0;
-    let totalCount = 0;
+    let score = 0;
+    let total = 0;
     let answered = false;
 
-    async function loadQuestion() {
+    async function generateQuestion() {
       const btn = document.getElementById("generateBtn");
+      const container = document.getElementById("quizContainer");
+      const domain = document.getElementById("domainSelect").value;
+
+      btn.disabled = true;
+      btn.textContent = "ጥያቄ በማመንጨት ላይ...";
+      container.innerHTML = "";
+      answered = false;
+
+      try {
+        const res = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ domain })
+        });
+
