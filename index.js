@@ -41,8 +41,8 @@ Use this exact JSON structure:
 
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      // ማሳሰቢያ፡ እርስዎ የሚጠቀሙትን API (ለምሳሌ Gemini ወይም OpenAI) እዚህ ያረጋግጡ
-      const apiKey = env.GEMINI_API_KEY || env.OPENAI_API_KEY || env.API_KEY;
+      // ሁለቱንም የAPI ቁልፍ ስሞች ይፈትሻል
+      const apiKey = env.GEMINI_API_KEY || env.GoogleGeminiApiKey || env.API_KEY;
       if (!apiKey) {
         throw new Error("API Key በCloudflare Settings ውስጥ አልተጨመረም።");
       }
@@ -85,7 +85,6 @@ Use this exact JSON structure:
       throw new Error("ያልተሟላ የጥያቄ ቅርጸት");
     } catch (error) {
       lastError = error;
-      // ስህተት ከተፈጠረ ለቀጣዩ ሙከራ (Retry) ይቀጥላል
     }
   }
 
