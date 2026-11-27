@@ -47,7 +47,8 @@ Use this exact JSON structure:
 
       const protocol = "https" + "://";
       const host = ["generativelanguage", "googleapis", "com"].join(".");
-      const path = "/v1beta/models/gemini-2.5-flash:generateContent";
+      // የተስተካከለው ሞዴል እዚህ ጋር ነው (gemini-3.8-flash)
+      const path = "/v1beta/models/gemini-3.8-flash:generateContent";
       const fullUrl = protocol + host + path + "?key=" + apiKey.trim();
 
       const response = await fetch(fullUrl, {
@@ -277,34 +278,44 @@ function renderHTML() {
 
     function renderQuestion(data) {
       const content = document.getElementById("contentArea");
-      let html = '<div class="question-text">' + data.question + '</div>';
+      content.innerHTML = "";
 
-      data.options.forEach((opt, idx) => {
-        html += '<button class="option-btn" id="opt-' + idx + '" onclick="checkAnswer(' + idx + ', ' + data.correctIndex + ')">' + opt + '</button>';
+      const qDiv = document.createElement("div");
+      qDiv.className = "question-text";
+      qDiv.textContent = data.question;
+      content.appendChild(qDiv);
+
+      data.options.forEach((opt, index) => {
+        const optBtn = document.createElement("button");
+        optBtn.className = "option-btn";
+        optBtn.textContent = opt;
+        optBtn.onclick = () => checkAnswer(index, data.correctIndex, data.explanation, optBtn);
+        content.appendChild(optBtn);
       });
-
-      html += '<div id="explanationBox" class="explanation" style="display:none;"><strong>Explanation:</strong> ' + data.explanation + '</div>';
-      content.innerHTML = html;
     }
 
-    function checkAnswer(selectedIdx, correctIdx) {
+    function checkAnswer(selectedIndex, correctIndex, explanation, clickedBtn) {
       if (answered) return;
       answered = true;
       totalCount++;
 
-      const selectedBtn = document.getElementById("opt-" + selectedIdx);
-      const correctBtn = document.getElementById("opt-" + correctIdx);
-
-      if (selectedIdx === correctIdx) {
+      const buttons = document.querySelectorAll(".option-btn");
+      if (selectedIndex === correctIndex) {
         correctCount++;
-        selectedBtn.classList.add("correct");
+        clickedBtn.classList.add("correct");
       } else {
-        selectedBtn.classList.add("wrong");
-        correctBtn.classList.add("correct");
+        clickedBtn.classList.add("wrong");
+        if (buttons[correctIndex]) {
+          buttons[correctIndex].classList.add("correct");
+        }
       }
 
       document.getElementById("score").textContent = correctCount + "/" + totalCount;
-      document.getElementById("explanationBox").style.display = "block";
+
+      const expDiv = document.createElement("div");
+      expDiv.className = "explanation";
+      expDiv.innerHTML = "<strong>Explanation:</strong> " + explanation;
+      document.getElementById("contentArea").appendChild(expDiv);
     }
   </script>
 </body>
