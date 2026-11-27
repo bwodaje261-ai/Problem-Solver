@@ -41,13 +41,12 @@ Use this exact JSON structure:
 
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      // ሁለቱንም የAPI ቁልፍ ስሞች ይፈትሻል
       const apiKey = env.GEMINI_API_KEY || env.GoogleGeminiApiKey || env.API_KEY;
       if (!apiKey) {
         throw new Error("API Key በCloudflare Settings ውስጥ አልተጨመረም።");
       }
 
-      // Gemini API ጥሪ (JSON Mode የበራለት)
+      // የተስተካከለው የGemini API ጥሪ
       const response = await fetch(
         `https://googleapis.com{apiKey}`,
         {
@@ -64,7 +63,8 @@ Use this exact JSON structure:
       );
 
       if (!response.ok) {
-        throw new Error(`API Error: ${response.status}`);
+        const errText = await response.text();
+        throw new Error(`API Error: ${response.status} - ${errText}`);
       }
 
       const data = await response.json();
@@ -74,11 +74,9 @@ Use this exact JSON structure:
         throw new Error("AI ባዶ መልስ ልኳል።");
       }
 
-      // ማንኛውንም የMarkdown ምልክትና ትርፍ ጽሑፍ ማጽዳት
       const cleaned = cleanJSON(rawText);
       const parsed = JSON.parse(cleaned);
 
-      // መረጃው ሙሉ መሆኑን ማረጋገጥ
       if (parsed.question && Array.isArray(parsed.options) && typeof parsed.correctIndex === "number") {
         return parsed;
       }
@@ -215,6 +213,7 @@ function renderHTML() {
       border-radius: 8px;
       font-size: 14px;
       margin-top: 10px;
+      word-break: break-word;
     }
   </style>
 </head>
@@ -227,6 +226,7 @@ function renderHTML() {
 
     <select id="domainSelect">
       <option value="All Domains (Blueprint Mix)">All Domains (Blueprint Mix)</option>
+      <option value="Drug Dispensing & Counseling">Drug Dispensing & Counseling</option>
       <option value="Pharmacology & Therapeutics">Pharmacology & Therapeutics</option>
       <option value="Pharmaceutics & Compounding">Pharmaceutics & Compounding</option>
       <option value="Clinical Pharmacy & Patient Care">Clinical Pharmacy & Patient Care</option>
@@ -283,28 +283,28 @@ function renderHTML() {
         html += '<button class="option-btn" id="opt-' + idx + '" onclick="checkAnswer(' + idx + ', ' + data.correctIndex + ')">' + opt + '</button>';
       });
 
-      html += '<div id="expBox" class="explanation" style="display:none;"><strong>Explanation:</strong> ' + data.explanation + '</div>';
+      html += '<div id="explanationBox" class="explanation" style="display:none;"><strong>Explanation:</strong> ' + data.explanation + '</div>';
       content.innerHTML = html;
     }
 
-    function checkAnswer(selected, correct) {
+    function checkAnswer(selectedIdx, correctIdx) {
       if (answered) return;
       answered = true;
       totalCount++;
 
-      const selectedBtn = document.getElementById("opt-" + selected);
-      const correctBtn = document.getElementById("opt-" + correct);
+      const selectedBtn = document.getElementById("opt-" + selectedIdx);
+      const correctBtn = document.getElementById("opt-" + correctIdx);
 
-      if (selected === correct) {
-        selectedBtn.classList.add("correct");
+      if (selectedIdx === correctIdx) {
         correctCount++;
+        selectedBtn.classList.add("correct");
       } else {
         selectedBtn.classList.add("wrong");
         correctBtn.classList.add("correct");
       }
 
       document.getElementById("score").textContent = correctCount + "/" + totalCount;
-      document.getElementById("expBox").style.display = "block";
+      document.getElementById("explanationBox").style.display = "block";
     }
   </script>
 </body>
