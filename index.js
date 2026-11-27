@@ -46,21 +46,19 @@ Use this exact JSON structure:
         throw new Error("API Key በCloudflare Settings ውስጥ አልተጨመረም።");
       }
 
-      // የተስተካከለው የGemini API ጥሪ
-      const response = await fetch(
-        `https://googleapis.com{apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: {
-              responseMimeType: "application/json",
-              temperature: 0.7,
-            },
-          }),
-        }
-      );
+      // የተስተካከለው የGemini API ጥሪ (አጭር እና ግልጽ አጻጻፍ)
+      const baseUrl = "https://googleapis.com";
+      const response = await fetch(baseUrl + "?key=" + apiKey.trim(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.7,
+          },
+        }),
+      });
 
       if (!response.ok) {
         const errText = await response.text();
