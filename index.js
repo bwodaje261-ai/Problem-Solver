@@ -1,7 +1,7 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const VALID_PIN = "2026"; 
+    const VALID_PIN = "2026";
 
     if (request.method === "POST" && url.pathname === "/api/generate") {
       try {
@@ -41,7 +41,7 @@ export default {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { 
+            generationConfig: {
               responseMimeType: "application/json",
               temperature: 0.9
             }
@@ -49,8 +49,9 @@ export default {
         });
 
         const data = await apiResponse.json();
-        
-        if (!apiResponse.ok || !data.candidates || !data.candidates[0]) {
+        const firstCandidate = data.candidates && data.candidates.at(0);
+
+        if (!apiResponse.ok || !firstCandidate) {
           const apiErr = data.error ? data.error.message : "API ምላሽ አልሰጠም";
           return new Response(JSON.stringify({ error: "API ስህተት: " + apiErr }), {
             status: 500,
@@ -58,8 +59,8 @@ export default {
           });
         }
 
-        const generatedText = data.candidates[0].content.parts[0].text;
-        
+        const generatedText = firstCandidate.content.parts.at(0).text;
+
         return new Response(generatedText, {
           headers: { "Content-Type": "application/json" }
         });
@@ -140,3 +141,117 @@ export default {
 
       <optgroup label="4. Pharmaceutical Supply Management (6.25%)">
         <option value="Drug Supply Chain Management (SCM) & Inventory Control">Drug Supply Chain Management (SCM)</option>
+
+        <option value="Medical Supplies, Equipment & Reagents">Medical Supplies, Equipment & Reagents</option>
+        <option value="Pharmaceutical Laws, Ethics & Regulatory Affairs">Pharmaceutical Laws, Ethics & Regulatory Affairs</option>
+      </optgroup>
+    </select>
+
+    <div id="errorBox" class="error-msg"></div>
+    <button id="generateBtn" class="btn" onclick="generateQuestion()">Generate Question</button>
+
+    <div id="questionBox" class="question-box">
+      <div id="questionText" class="q-text"></div>
+      <div id="optionsContainer"></div>
+      <div id="explanationBox" class="explanation"></div>
+      <button id="nextBtn" class="next-btn" onclick="generateQuestion()">Next Question ➔</button>
+    </div>
+  </div>
+
+  <script>
+    let score = 0;
+    let total = 0;
+    let answered = false;
+
+    async function generateQuestion() {
+      const pin = document.getElementById("pinInput").value.trim();
+      const course = document.getElementById("courseSelect").value;
+      const errorBox = document.getElementById("errorBox");
+      const btn = document.getElementById("generateBtn");
+      const nextBtn = document.getElementById("nextBtn");
+      const qBox = document.getElementById("questionBox");
+
+      errorBox.textContent = "";
+      if (!pin) {
+        errorBox.textContent = "እባክዎ መጀመሪያ Access PIN ያስገቡ!";
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "ጥያቄ በማዘጋጀት ላይ... (Generating...)";
+      nextBtn.style.display = "none";
+
+      try {
+        const res = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ course, pin })
+        });
+
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          throw new Error(data.error || "ጥያቄ ማምጣት አልተቻለም");
+        }
+
+        renderQuestion(data);
+        qBox.style.display = "block";
+        btn.style.display = "none";
+      } catch (err) {
+        errorBox.textContent = err.message;
+        btn.disabled = false;
+        btn.textContent = "Generate Question";
+      }
+    }
+
+    function renderQuestion(q) {
+      answered = false;
+      document.getElementById("questionText").textContent = q.question;
+      const container = document.getElementById("optionsContainer");
+      const expBox = document.getElementById("explanationBox");
+      container.innerHTML = "";
+      expBox.style.display = "none";
+      expBox.textContent = q.explanation;
+
+      ["A", "B", "C", "D"].forEach(letter => {
+        const optionText = q.options && q.options[letter];
+        if (!optionText) return;
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = letter + ". " + optionText;
+        btn.onclick = () => checkAnswer(letter, q.correctAnswer, btn);
+        container.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected, correct, clickedBtn) {
+      if (answered) return;
+      answered = true;
+      total++;
+
+      const buttons = document.querySelectorAll(".option-btn");
+      buttons.forEach(b => {
+        b.disabled = true;
+        if (b.textContent.startsWith(correct + ".")) {
+          b.classList.add("correct");
+        }
+      });
+
+      if (selected === correct) {
+        score++;
+      } else {
+        clickedBtn.classList.add("wrong");
+      }
+
+      document.getElementById("score").textContent = score + " / " + total;
+      document.getElementById("explanationBox").style.display = "block";
+      document.getElementById("nextBtn").style.display = "block";
+    }
+  </script>
+</body>
+</html>`;
+
+    return new Response(html, {
+      headers: { "Content-Type": "text/html;charset=UTF-8" }
+    });
+  }
+};
