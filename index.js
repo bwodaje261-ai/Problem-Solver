@@ -23,7 +23,8 @@ export default {
   },
 };
 
-const API_BASE = "https://" + "://googleapis.com";
+const HOST = ["generativelanguage", "googleapis", "com"].join(".");
+const API_BASE = "https://" + HOST + "/v1beta/models";
 
 async function getAvailableModels(apiKey) {
   const defaultModels = [
@@ -32,7 +33,9 @@ async function getAvailableModels(apiKey) {
   ];
 
   try {
-    const res = await fetch(API_BASE + "?key=" + apiKey);
+    const res = await fetch(API_BASE, {
+      headers: { "x-goog-api-key": apiKey }
+    });
     if (res.ok) {
       const data = await res.json();
       if (data.models && Array.isArray(data.models)) {
@@ -74,11 +77,14 @@ Use this exact JSON structure:
   for (let i = 0; i < models.length; i++) {
     const currentModel = models[i];
     try {
-      const fullUrl = API_BASE + "/" + currentModel + ":generateContent?key=" + apiKey;
+      const fullUrl = API_BASE + "/" + currentModel + ":generateContent";
 
       const response = await fetch(fullUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey
+        },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
@@ -127,7 +133,6 @@ function cleanJSON(text) {
   }
   return str;
 }
-
 function renderHTML() {
   return `<!DOCTYPE html>
 <html lang="en">
