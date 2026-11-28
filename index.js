@@ -73,7 +73,7 @@ export default {
       }
     }
 
-      const html = `<!DOCTYPE html>
+    const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -100,6 +100,7 @@ export default {
     .error-msg { color: #dc2626; font-size: 14px; margin-bottom: 10px; text-align: center; font-weight: 500; }
   </style>
 </head>
+
 <body>
   <div class="card">
     <div class="header">
@@ -141,17 +142,21 @@ export default {
 
       <optgroup label="4. Pharmaceutical Supply Management (6.25%)">
         <option value="Drug Supply Chain Management (SCM) & Inventory Control">Drug Supply Chain Management (SCM)</option>
-
         <option value="Medical Supplies, Equipment & Reagents">Medical Supplies, Equipment & Reagents</option>
-        <option value="Pharmaceutical Laws, Ethics & Regulatory Affairs">Pharmaceutical Laws, Ethics & Regulatory Affairs</option>
+      </optgroup>
+
+      <optgroup label="5. Pharmacy Law, Ethics & Management (2.5%)">
+        <option value="Pharmacy Law, Ethics & Regulatory Affairs">Pharmacy Law, Ethics & Regulatory Affairs</option>
+        <option value="Pharmacy Management & Health Economics">Pharmacy Management & Health Economics</option>
       </optgroup>
     </select>
 
-    <div id="errorBox" class="error-msg"></div>
+    <div id="errorMsg" class="error-msg"></div>
+
     <button id="generateBtn" class="btn" onclick="generateQuestion()">Generate Question</button>
 
     <div id="questionBox" class="question-box">
-      <div id="questionText" class="q-text"></div>
+      <div id="qText" class="q-text"></div>
       <div id="optionsContainer"></div>
       <div id="explanationBox" class="explanation"></div>
       <button id="nextBtn" class="next-btn" onclick="generateQuestion()">Next Question ➔</button>
@@ -161,25 +166,28 @@ export default {
   <script>
     let score = 0;
     let total = 0;
-    let answered = false;
+    let isAnswered = false;
 
     async function generateQuestion() {
       const pin = document.getElementById("pinInput").value.trim();
       const course = document.getElementById("courseSelect").value;
-      const errorBox = document.getElementById("errorBox");
+      const errorMsg = document.getElementById("errorMsg");
       const btn = document.getElementById("generateBtn");
       const nextBtn = document.getElementById("nextBtn");
       const qBox = document.getElementById("questionBox");
+      const expBox = document.getElementById("explanationBox");
 
-      errorBox.textContent = "";
+      errorMsg.textContent = "";
       if (!pin) {
-        errorBox.textContent = "እባክዎ መጀመሪያ Access PIN ያስገቡ!";
+        errorMsg.textContent = "እባክዎ መጀመሪያ Access PIN ያስገቡ!";
         return;
       }
 
       btn.disabled = true;
-      btn.textContent = "ጥያቄ በማዘጋጀት ላይ... (Generating...)";
+      btn.textContent = "ጥያቄ በማዘጋጀት ላይ...";
       nextBtn.style.display = "none";
+      expBox.style.display = "none";
+      isAnswered = false;
 
       try {
         const res = await fetch("/api/generate", {
@@ -189,61 +197,53 @@ export default {
         });
 
         const data = await res.json();
+
         if (!res.ok || data.error) {
           throw new Error(data.error || "ጥያቄ ማምጣት አልተቻለም");
         }
 
-        renderQuestion(data);
+        document.getElementById("qText").textContent = data.question;
+        const container = document.getElementById("optionsContainer");
+        container.innerHTML = "";
+
+        ["A", "B", "C", "D"].forEach(letter => {
+          const optBtn = document.createElement("button");
+          optBtn.className = "option-btn";
+          optBtn.textContent = letter + ". " + data.options[letter];
+          optBtn.onclick = () => selectAnswer(optBtn, letter, data.correctAnswer, data.explanation);
+          container.appendChild(optBtn);
+        });
+
         qBox.style.display = "block";
-        btn.style.display = "none";
       } catch (err) {
-        errorBox.textContent = err.message;
+        errorMsg.textContent = "ስህተት ተፈጥሯል: " + err.message;
+      } finally {
         btn.disabled = false;
         btn.textContent = "Generate Question";
       }
     }
 
-    function renderQuestion(q) {
-      answered = false;
-      document.getElementById("questionText").textContent = q.question;
-      const container = document.getElementById("optionsContainer");
-      const expBox = document.getElementById("explanationBox");
-      container.innerHTML = "";
-      expBox.style.display = "none";
-      expBox.textContent = q.explanation;
-
-      ["A", "B", "C", "D"].forEach(letter => {
-        const optionText = q.options && q.options[letter];
-        if (!optionText) return;
-        const btn = document.createElement("button");
-        btn.className = "option-btn";
-        btn.textContent = letter + ". " + optionText;
-        btn.onclick = () => checkAnswer(letter, q.correctAnswer, btn);
-        container.appendChild(btn);
-      });
-    }
-
-    function checkAnswer(selected, correct, clickedBtn) {
-      if (answered) return;
-      answered = true;
+    function selectAnswer(selectedBtn, chosenLetter, correctLetter, explanation) {
+      if (isAnswered) return;
+      isAnswered = true;
       total++;
 
-      const buttons = document.querySelectorAll(".option-btn");
-      buttons.forEach(b => {
-        b.disabled = true;
-        if (b.textContent.startsWith(correct + ".")) {
-          b.classList.add("correct");
-        }
-      });
-
-      if (selected === correct) {
+      const allBtns = document.querySelectorAll(".option-btn");
+      if (chosenLetter === correctLetter) {
+        selectedBtn.classList.add("correct");
         score++;
       } else {
-        clickedBtn.classList.add("wrong");
+        selectedBtn.classList.add("wrong");
+        allBtns.forEach((b, idx) => {
+          const l = ["A", "B", "C", "D"][idx];
+          if (l === correctLetter) b.classList.add("correct");
+        });
       }
 
       document.getElementById("score").textContent = score + " / " + total;
-      document.getElementById("explanationBox").style.display = "block";
+      const expBox = document.getElementById("explanationBox");
+      expBox.textContent = explanation;
+      expBox.style.display = "block";
       document.getElementById("nextBtn").style.display = "block";
     }
   </script>
