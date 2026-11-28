@@ -153,7 +153,7 @@ const html = `<!DOCTYPE html>
       </optgroup>
     </select>
 
-<div id="errorMsg" class="error-msg"></div>
+    <div id="errorMsg" class="error-msg"></div>
 
     <button id="generateBtn" class="btn" onclick="generateQuestion()">Generate Question</button>
 
@@ -264,3 +264,6 @@ const html = `<!DOCTYPE html>
     });
   }
 };
+
+
+  
