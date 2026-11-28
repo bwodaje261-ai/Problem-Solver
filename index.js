@@ -15,7 +15,14 @@ export default {
           });
         }
 
-        const prompt = `Generate 1 unique, challenging clinical/scenario-based multiple-choice question strictly aligned with the Ethiopian Ministry of Education Pharmacy Exit Exam and EHPLE COC Blueprint on the course/topic: "${course}". Make sure it is different from standard repetitive questions.
+        if (!env.GEMINI_API_KEY) {
+          return new Response(JSON.stringify({ error: "Cloudflare Settings ላይ GEMINI_API_KEY አልተገኘም! እባክዎ ስሙን ያረጋግጡ።" }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+          });
+        }
+
+        const prompt = `Generate 1 unique, challenging clinical/scenario-based multiple-choice question strictly aligned with the Ethiopian Ministry of Education Pharmacy Exit Exam and EHPLE COC Blueprint on the course/topic: "${course}".
         Return ONLY a valid JSON object with no markdown formatting, using this exact structure:
         {
           "question": "The clinical scenario or question text here",
@@ -42,6 +49,15 @@ export default {
         });
 
         const data = await apiResponse.json();
+        
+        if (!apiResponse.ok || !data.candidates || !data.candidates[0]) {
+          const apiErr = data.error ? data.error.message : "API ምላሽ አልሰጠም";
+          return new Response(JSON.stringify({ error: "API ስህተት: " + apiErr }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" }
+          });
+        }
+
         const generatedText = data.candidates[0].content.parts[0].text;
         
         return new Response(generatedText, {
@@ -49,13 +65,13 @@ export default {
         });
 
       } catch (err) {
-        return new Response(JSON.stringify({ error: "ጥያቄውን ማመንጨት አልተቻለም። እባክዎ እንደገና ይሞክሩ።" }), {
+        return new Response(JSON.stringify({ error: "ስህተት ተፈጥሯል: " + err.message }), {
           status: 500,
           headers: { "Content-Type": "application/json" }
         });
       }
     }
-
+    
       const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
