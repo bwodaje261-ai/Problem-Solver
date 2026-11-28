@@ -36,7 +36,9 @@ export default {
           "explanation": "✅ Correct Answer (A): [Explain clearly why the correct option is right].\\n\\n❌ Why other options are incorrect:\\n• Option [X]: [Explain why it is wrong].\\n• Option [Y]: [Explain why it is wrong].\\n• Option [Z]: [Explain why it is wrong]."
         }`;
 
-        const apiResponse = await fetch(`https://googleapis.com{env.GEMINI_API_KEY}`, {
+        const apiUrl = `https://googleapis.com{env.GEMINI_API_KEY}`;
+
+        const apiResponse = await fetch(apiUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -73,7 +75,7 @@ export default {
       }
     }
 
-    const html = `<!DOCTYPE html>
+const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -185,7 +187,8 @@ export default {
 
       btn.disabled = true;
       btn.textContent = "ጥያቄ በማዘጋጀት ላይ...";
-      nextBtn.style.display = "none";
+      nextBtn.disabled = true;
+      nextBtn.textContent = "በማዘጋጀት ላይ...";
       expBox.style.display = "none";
       isAnswered = false;
 
@@ -215,11 +218,14 @@ export default {
         });
 
         qBox.style.display = "block";
+        nextBtn.style.display = "none";
       } catch (err) {
         errorMsg.textContent = "ስህተት ተፈጥሯል: " + err.message;
       } finally {
         btn.disabled = false;
         btn.textContent = "Generate Question";
+        nextBtn.disabled = false;
+        nextBtn.textContent = "Next Question ➔";
       }
     }
 
@@ -244,7 +250,10 @@ export default {
       const expBox = document.getElementById("explanationBox");
       expBox.textContent = explanation;
       expBox.style.display = "block";
-      document.getElementById("nextBtn").style.display = "block";
+      
+      const nextBtn = document.getElementById("nextBtn");
+      nextBtn.style.display = "block";
+      nextBtn.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
   </script>
 </body>
